@@ -154,17 +154,17 @@ for i = 1:ny
                 ( (thisX >= (fc(7,2)-2*dx)) && (thisX < (fc(7,2)-dx)) ) )
             %Backyard downspouts
             if (thisY > fc(7,4)) && (thisY <= (fc(7,4)+dsLength))
-                parcelCover(i,j)=6;
+                parcelCover(i,j)=4;
             %Frontyard house downspouts
             elseif (thisX > fc(9,2)) && (thisY < fc(7,3)) && (thisY >= fc(7,3)-dsLength)
-                parcelCover(i,j)=6;
+                parcelCover(i,j)=4;
             %Frontyard garage downspouts
             elseif (thisX < fc(9,2)) && (thisY < fc(9,3)) && (thisY >= fc(9,3)-dsLength)
-                parcelCover(i,j)=6;
+                parcelCover(i,j)=4;
             end
         elseif (downspout == 0) &&...
                 (thisX <= fc(9,1)) && (thisY >= fc(9,4)-3*dy) && (thisY <= fc(9,4)-2*dy)
-            parcelCover(i,j) = 6;
+            parcelCover(i,j) = 4;
         end
     end
 end

@@ -154,21 +154,21 @@ for i = 1:ny
         if (downspout == 1)
             if (thisX <= (fc(9,2)-dx)) && (thisX > (fc(9,2)-2*dx)) &&...
                     (thisY <= fc(9,3)) && (thisY >= fc(9,3)-dsLength)
-                parcelCover(i,j) = 6; %Lower garage downspout
+                parcelCover(i,j) = 4; %Lower garage downspout
             elseif (thisY <= (fc(9,4)-dy)) && (thisY >= (fc(9,4)-2*dy)) &&...
                     (thisX <= fc(9,1)) && (thisX >= (fc(9,1)-dsLength))
-                parcelCover(i,j) = 6; %Upper garage downspout
+                parcelCover(i,j) = 4; %Upper garage downspout
             elseif ( ((thisX <= (fc(7,1)+2*dx)) && (thisX > (fc(7,1)+dx))) ||...
                     ((thisX >= (fc(7,2)-2*dx)) && (thisX < (fc(7,2)-dx))) ) &&...
                     ( ((thisY > fc(7,4)) && (thisY <= (fc(7,4)+dsLength))) ||...
                     ((thisY < fc(7,3)) && (thisY >= (fc(7,3)-dsLength))) )
-                parcelCover(i,j) = 6; %House downspouts
+                parcelCover(i,j) = 4; %House downspouts
             end
         elseif (downspout == 0)
             if (thisX > fc(9,2)) && (thisY > (fc(9,3)+2*dy)) && (thisY < (fc(9,3)+3*dy))
-                parcelCover(i,j) = 6;
+                parcelCover(i,j) = 4;
             elseif (thisX < fc(7,1)) && (thisY > (fc(7,4)-3*dy)) && (thisY < (fc(7,4)-2*dy))
-                parcelCover(i,j) = 6;
+                parcelCover(i,j) = 4;
             end
         end
     end
