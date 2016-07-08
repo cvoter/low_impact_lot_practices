@@ -43,20 +43,20 @@ load('greyImpMap.mat');
 %% 1. ENTER INFO
 %Note units specified below. Unless otherwise noted, L[=]m, T[=]hr
 %Runname and Lot Layout
-lotname = 'LotC_05';
-lotType = 3; % 1=LotA, 2=LotB, 3=LotC
+lotname = 'LotB_06';
+lotType = 2; % 1=LotA, 2=LotB, 3=LotC
 undeveloped = 0; % 0=developed; 1=undeveloped
 downspout = 0; %0=fully connected; 1=downspouts at corners; 2=no downspouts
 sidewalk = 0; %0=connected sidewalk; 1=offset sidewalk
-transverse = 1; %0=no transverse slope; 1=transverse slope on driveway & front walk
+transverse = 0; %0=no transverse slope; 1=transverse slope on driveway & front walk
 microType = 0; %0=no microtopography, 1=bumpy, 2=terrace
 
 %COMPACTED
-Ks_soil = 0.11/24/10; %m/d --> m/hr %COMPACTED
-porosity_soil = 0.40; %COMPACTED
+% Ks_soil = 0.11/24/10; %m/d --> m/hr %COMPACTED
+% porosity_soil = 0.40; %COMPACTED
 %nonCompacted
-% Ks_soil = 0.11/24; %m/d --> m/hr
-% porosity_soil = 0.45;
+Ks_soil = 0.11/24; %m/d --> m/hr
+porosity_soil = 0.45;
 
 triggers = [undeveloped,downspout,sidewalk,transverse,microType];
 
@@ -69,8 +69,8 @@ sidewalkOffset = 2; %distance between sidewalk and street, [m]
 details = [landSlope,roofSlope,streetSlope,transverseSlope,microSlope,dsLength,sidewalkOffset];
 
 %Time
-drun = 120; %duration of each batch (hrs)
-nruns = 43; %number of batches (drun*nruns = total modeled hours)
+drun = 516; %duration of each batch (hrs)
+nruns = 10; %number of batches (drun*nruns = total modeled hours)
 
 %Hydraulic Properties
 mn_grass = 0.24/3600; %s*m^(-1/3) --> hr*m^(-1/3)
