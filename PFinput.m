@@ -43,20 +43,20 @@ load('greyImpMap.mat');
 %% 1. ENTER INFO
 %Note units specified below. Unless otherwise noted, L[=]m, T[=]hr
 %Runname and Lot Layout
-lotname = 'LotB_08';
-lotType = 2; % 1=LotA, 2=LotB, 3=LotC
+lotname = 'LotC_05';
+lotType = 3; % 1=LotA, 2=LotB, 3=LotC
 undeveloped = 0; % 0=developed; 1=undeveloped
-downspout = 1; %0=fully connected; 1=downspouts at corners; 2=no downspouts
-sidewalk = 1; %0=connected sidewalk; 1=offset sidewalk
+downspout = 0; %0=fully connected; 1=downspouts at corners; 2=no downspouts
+sidewalk = 0; %0=connected sidewalk; 1=offset sidewalk
 transverse = 1; %0=no transverse slope; 1=transverse slope on driveway & front walk
-microType = 1; %0=no microtopography, 1=bumpy, 2=terrace
+microType = 0; %0=no microtopography, 1=bumpy, 2=terrace
 
 %COMPACTED
-% Ks_soil = 0.11/24/10; %m/d --> m/hr %COMPACTED
-% porosity_soil = 0.40; %COMPACTED
+Ks_soil = 0.11/24/10; %m/d --> m/hr %COMPACTED
+porosity_soil = 0.40; %COMPACTED
 %nonCompacted
-Ks_soil = 0.11/24; %m/d --> m/hr
-porosity_soil = 0.45;
+% Ks_soil = 0.11/24; %m/d --> m/hr
+% porosity_soil = 0.45;
 
 triggers = [undeveloped,downspout,sidewalk,transverse,microType];
 
