@@ -52,9 +52,8 @@ landSlope = details(1);
 roofSlope = details(2);
 streetSlope = details(3);
 transverseSlope = details(4);
-microSlope = details(5);
-dsLength = details(6);
-sidewalkOffset = details(7)*sidewalk;
+dsLength = details(5);
+sidewalkOffset = details(6)*sidewalk;
 
 %% FUNCTION
 
@@ -63,8 +62,12 @@ ymidHouse = (fc(7,3)+fc(7,4))/2;    xmidHouse = (fc(7,1)+fc(7,2))/2;
 ymidGarage = (fc(9,3)+fc(9,4))/2;   xmidGarage = (fc(9,1)+fc(9,2))/2;
 
 %% DEVELOPED SLOPES
-slopeX = zeros([ny nx]);
-slopeY = zeros([ny nx]);
+if microType == 1
+    load('J:\Research\Parflow\inputs\matlab_in\LotFcnsABC\LotA_microelev.mat');
+else
+    slopeX = zeros([ny nx]);
+    slopeY = zeros([ny nx]);
+end
 for i = 1:ny
     thisY = y(i);
     for j = 1:nx
@@ -205,55 +208,6 @@ if transverse == 1
         end
     end
 end
-
-%% MICROTOPOGRAPHY
-if microType == 1
-    %BUMPY
-    for i = 1:ny
-        thisY = y(i);
-        for j = 1:nx
-            thisX = x(j);
-            if parcelCover(i,j) == 0
-                %micro slopeY
-                if mod(j+4,4) == 1 || mod(j+4,4) == 2 %column 1 & 2
-                    if mod(i,2) == 0 %even row
-                        slopeY(i,j) = slopeY(i,j) - microSlope;
-                    else slopeY(i,j) = slopeY(i,j) + microSlope;
-                    end
-                else %column 3 & 4
-                    if mod(i,2) == 0 %even row
-                        slopeY(i,j) = slopeY(i,j) + microSlope;
-                    else slopeY(i,j) = slopeY(i,j) - microSlope;
-                    end
-                end
-                %micro slopeX
-                if mod(j,2) == 0 %even column
-                    slopeX(i,j) = slopeX(i,j) - microSlope;
-                else slopeX(i,j) = slopeX(i,j) + microSlope;
-                end
-            end
-        end
-    end
-elseif microType == 2
-    %TERRACY
-    for i = 1:ny
-        thisY = y(i);
-        for j = 1:nx
-            thisX = x(j);
-            if parcelCover(i,j) == 0
-                if mod(i,2) == 0 %even row
-                    slopeY(i,j) = slopeY(i,j) - microSlope;
-                else slopeY(i,j) = slopeY(i,j) + microSlope;
-                end
-                if mod(j,2) == 0 %even column
-                    slopeX(i,j) = slopeX(i,j) - microSlope;
-                else slopeX(i,j) = slopeX(i,j) + microSlope;
-                end
-            end
-        end
-    end
-end
-
 %% UNDEVELOPED
 if developed == 0
     slopeX = zeros([ny nx]);
