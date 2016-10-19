@@ -1,4 +1,4 @@
-function [ ] = matrixTOvegm(runname,nx,ny,vegGrid)
+function [ ] = matrixTOvegm(saveDir,nx,ny,vegGrid)
 %matrixTOvegm.m
 %Based on *.f90 script of same name by Vibhava Srivastave, obtained from
 %Aditi Bhaskar
@@ -73,7 +73,7 @@ for j=1:ny
     end
 end
 
-cd(strcat('K:\Parflow\PFinput\LotType\',runname));
+cd(saveDir);
 fid = fopen('drv_vegm.dat','w');
 fmt = '%4d% 4d% 7.2f% 7.2f% 3.2f% 3.2f% 2d% 4.2f% 4.2f% 4.2f% 4.2f% 4.2f% 4.2f% 4.2f% 4.2f% 4.2f% 4.2f% 4.2f% 4.2f% 4.2f% 4.2f% 4.2f% 4.2f% 4.2f% 4.2f\n';
 fprintf(fid,'%s\n','x  y  lat    lon    sand clay color  fractional coverage of grid by vegetation class (Must/Should Add to 1.0)');
