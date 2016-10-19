@@ -45,7 +45,7 @@ load('greyImpMap.mat');
 %Runname and Lot Layout
 lotname = 'LotB_06';
 lotType = 2; % 1=LotA, 2=LotB, 3=LotC
-undeveloped = 0; % 0=developed; 1=undeveloped
+developed = 0; % 0=undeveloped; 1=developed
 downspout = 0; %0=fully connected; 1=downspouts at corners; 2=no downspouts
 sidewalk = 0; %0=connected sidewalk; 1=offset sidewalk
 transverse = 0; %0=no transverse slope; 1=transverse slope on driveway & front walk
@@ -58,7 +58,7 @@ microType = 0; %0=no microtopography, 1=bumpy, 2=terrace
 Ks_soil = 0.11/24; %m/d --> m/hr
 porosity_soil = 0.45;
 
-triggers = [undeveloped,downspout,sidewalk,transverse,microType];
+triggers = [developed,downspout,sidewalk,transverse,microType];
 
 landSlope = 0.02; %magnitude of land slope
 roofSlope=0.20;streetSlope=landSlope;

@@ -21,7 +21,7 @@ function [X,Y,fc,parcelCover,used] = LotB(dx,dy,nx,ny,triggers,details)
 % 9 = garage
 
 %% INPUTS
-undeveloped = triggers(1);
+developed = triggers(1);
 downspout = triggers(2);
 sidewalk = triggers(3);
 transverse = triggers(4);
@@ -174,7 +174,7 @@ for i = 1:ny
     end
 end
 
-if undeveloped == 1
+if developed == 0
     fc = zeros([9,4]);
     parcelCover = zeros([ny,nx]);
 end

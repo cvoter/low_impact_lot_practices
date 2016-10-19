@@ -42,7 +42,7 @@ function [slopeX,slopeY] = LotB_slopes(x,nx,dx,y,ny,dy,fc,parcelCover,triggers,d
 %Negative Slope points downhill --> low coordinate = highest elev
 
 %% INPUTS
-undeveloped = triggers(1);
+developed = triggers(1);
 downspout = triggers(2);
 sidewalk = triggers(3);
 transverse = triggers(4);
@@ -62,8 +62,12 @@ ymidHouse = (fc(7,3)+fc(7,4))/2;    xmidHouse = (fc(7,1)+fc(7,2))/2;
 ymidGarage = (fc(9,3)+fc(9,4))/2;   xmidGarage = (fc(9,1)+fc(9,2))/2;
 
 %% DEVELOPED SLOPES
-slopeX = zeros([ny nx]);
-slopeY = zeros([ny nx]);
+if microtype > 0
+    load('J:\Research\Parflow\inputs\matlab_in\LotFcnsABC\LotB_microelev.mat');
+else
+    slopeX = zeros([ny nx]);
+    slopeY = zeros([ny nx]);
+end
 for i = 1:ny
     thisY = y(i);
     for j = 1:nx
@@ -296,7 +300,7 @@ elseif microType == 2
 end
 
 %% UNDEVELOPED
-if undeveloped == 1
+if developed == 0
     slopeX = zeros([ny nx]);
     slopeY = zeros([ny nx]);
     for i = 1:ny

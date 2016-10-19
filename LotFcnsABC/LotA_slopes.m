@@ -42,7 +42,7 @@ function [slopeX,slopeY] = LotA_slopes(x,nx,dx,y,ny,dy,fc,parcelCover,triggers,d
 %Negative Slope points downhill --> low coordinate = highest elev
 
 %% INPUTS
-undeveloped = triggers(1);
+developed = triggers(1);
 downspout = triggers(2);
 sidewalk = triggers(3);
 transverse = triggers(4);
@@ -255,7 +255,7 @@ elseif microType == 2
 end
 
 %% UNDEVELOPED
-if undeveloped == 1
+if developed == 0
     slopeX = zeros([ny nx]);
     slopeY = zeros([ny nx]);
     for i = 1:ny
