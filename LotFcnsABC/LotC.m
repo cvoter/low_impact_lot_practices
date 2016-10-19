@@ -1,4 +1,4 @@
-function [X,Y,fc,parcelCover,used] = LotC(dx,dy,nx,ny,triggers,details)
+function [fc,parcelCover,used] = LotC(dx,dy,nx,ny,x,y,triggers,details)
 %Creates a 2D matrix the size of PF computaitonal grid with different keys for
 %each parcel feature. Also outputs matrix with coordinates of feature
 %corners, format:
@@ -24,25 +24,9 @@ function [X,Y,fc,parcelCover,used] = LotC(dx,dy,nx,ny,triggers,details)
 developed = triggers(1);
 downspout = triggers(2);
 sidewalk = triggers(3);
-transverse = triggers(4);
-microType = triggers(5);
 
-landSlope = details(1);
-roofSlope = details(2);
-streetSlope = details(3);
-transverseSlope = details(4);
-microSlope = details(5);
 dsLength = details(6);
 sidewalkOffset = details(7)*sidewalk;
-
-%% SPECIFY DOMAIN
-xL = 0; xU = xL+dx*nx;  x0 = xL+dx/2;   xf = xU-dx/2;
-x = x0:dx:xf;
-
-yL = 0; yU = yL+dy*ny;  y0 = yL+dy/2;   yf = yU-dy/2;
-y = y0:dy:yf;
-
-[X,Y] = meshgrid(x,y);
 
 %% FEATURE SIZES (enter in meters)
 %Street = 1
