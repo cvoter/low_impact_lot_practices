@@ -46,6 +46,7 @@ cd(inDir)
 %% 3. COPY EXISTING STUFF INTO INPUT DIR
 copyfile(lotDir,inDir);
 copyfile(metFile,inDir);
+copyfile(strcat(metDir,'\',locname,'\precip.mat'),inDir);
 copyfile(strcat(metDir,'\drv_clmin.dat'),inDir);
 copyfile(strcat(metDir,'\drv_clmin_restart.dat'),inDir);
 copyfile(strcat(metDir,'\drv_vegp.dat'),inDir);
