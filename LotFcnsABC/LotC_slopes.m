@@ -12,16 +12,6 @@ function [slopeX,slopeY] = LotC_slopes(x,nx,dx,y,ny,dy,fc,parcelCover,triggers,d
 %   5. Calculate elevations, based on slopes (not quite right, at the
 %   moment)
 
-%DOWNSPOUT
-% 1 = none <---NOT REALLY SET UP FOR THIS
-% 2 = at corners
-% 3 = fully connected
-
-%TRANSVERSE SLOPE
-% column 1: driveway x-slope
-% column 2: frontwalk x-slope
-% column 3: sidewalk y-slope
-
 %PARCEL COVER - ROWS
 % 0 = turfgrass
 % 1 = street

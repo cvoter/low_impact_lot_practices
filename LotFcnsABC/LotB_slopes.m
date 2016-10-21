@@ -12,16 +12,6 @@ function [slopeX,slopeY] = LotB_slopes(x,nx,dx,y,ny,dy,fc,parcelCover,triggers,d
 %   5. Calculate elevations, based on slopes (not quite right, at the
 %   moment)
 
-%DOWNSPOUT
-% 1 = none <---NOT REALLY SET UP FOR THIS
-% 2 = at corners
-% 3 = fully connected
-
-%TRANSVERSE SLOPE
-% column 1: driveway x-slope
-% column 2: frontwalk x-slope
-% column 3: sidewalk y-slope
-
 %PARCEL COVER - ROWS
 % 0 = turfgrass
 % 1 = street
@@ -71,8 +61,12 @@ for i = 1:ny
     thisY = y(i);
     for j = 1:nx
         thisX = x(j);
+        if (parcelCover(i,j) > 0)
+            slopeX(i,j) = 0;
+            slopeY(i,j) = 0;
+        end
         if downspout == 0
-            %FULLY CONNECTED
+            %FULLY CONNECTED, ROOFS
             %Y-direction
             if ( (parcelCover(i,j) == 9) && (thisY < (fc(9,3)+2*dy)) ) ||...
                     ( (parcelCover(i,j) == 7) && (thisY < (fc(7,4)-3*dy)) )
@@ -99,27 +93,27 @@ for i = 1:ny
                 slopeX(i,j) = -roofSlope; %Elsewhere on garage
             end
         elseif downspout == 1
-            %DOWNSPOUT AT CORNERS
+            %DOWNSPOUT AT CORNERS, ROOFS
             %Y-direction
             if parcelCover(i,j) == 9
                 %Garage
-                if (thisY < ymidGarage && thisY >= fc(9,3)+dy)...
-                        || (thisY < ymidGarage && thisX <= fc(9,2)-dx && (thisX >= fc(9,2)-2*dx))...
+                if (thisY < ymidGarage && thisY > fc(9,3)+2*dy)...
+                        || (thisY < ymidGarage && thisX <= fc(9,2) && (thisX >= fc(9,2)-2*dx))...
                         || (thisY >= (fc(9,4)-dy))
                     slopeY(i,j) = roofSlope;
                 elseif (thisY >= ymidGarage && thisY <= fc(9,4)-2*dy)...
-                        || (thisY < ymidGarage && thisX <= fc(9,2)-3*dx)
+                        || (thisY < ymidGarage && thisY < fc(9,3)+dy && thisX <= fc(9,2)-3*dx)
                     slopeY(i,j) = -roofSlope;
                 end
             elseif thisX >= (fc(7,1)+dx) && thisX <= (fc(7,2)-dx) && parcelCover(i,j) == 7
                 %House
-                if ( thisY < ymidHouse && thisY >= fc(7,3)+dy )...
+                if ( thisY < ymidHouse && thisY >= fc(7,3)+2*dy )...
                         || ( thisY < ymidHouse && thisX <=(fc(7,1)+2*dx) )...
                         || ( thisY < ymidHouse && thisX >=(fc(7,2)-2*dx) )...
                         || ( thisY > fc(7,4)-dy && thisX >(fc(7,1)+3*dx) && thisX < xmidHouse )...
                         || ( thisY > fc(7,4)-dy && thisX <(fc(7,2)-3*dx) && thisX >= xmidHouse)
                     slopeY(i,j) = roofSlope;
-                elseif ( thisY > ymidHouse && thisY <= fc(7,4)-dy )...
+                elseif ( thisY > ymidHouse && thisY <= fc(7,4)-2*dy )...
                         || ( thisY >= ymidHouse && thisX <=(fc(7,1)+2*dx) )...
                         || ( thisY >= ymidHouse && thisX >=(fc(7,2)-2*dx) )...
                         || ( thisY < fc(7,3)+dy && thisX >(fc(7,1)+3*dx) && thisX < xmidHouse )...
@@ -131,11 +125,11 @@ for i = 1:ny
             if parcelCover(i,j) == 9
                 %Garage
                 if (thisY < ymidGarage && thisX >= fc(9,2)-dx) ||...
-                        (thisY >= ymidGarage && thisX >= fc(9,1)+dx) ||...
+                        (thisY >= ymidGarage && thisX >= fc(9,1)+2*dx) ||...
                         (thisY > (fc(9,4)-2*dy) && thisY < (fc(9,4)-dy))
                     slopeX(i,j) = roofSlope;
                 elseif (thisY < ymidGarage && thisX <= fc(9,2)-2*dx) ||...
-                        (thisY >= ymidGarage && thisY <= fc(9,4)-3*dy)
+                        (thisY >= ymidGarage && thisY <= fc(9,4)-3*dy && thisX < fc(9,1)+dx)
                     slopeX(i,j) = -roofSlope;
                 end
             elseif parcelCover(i,j) == 7
@@ -153,12 +147,22 @@ for i = 1:ny
         %EVERYWHERE ELSE, Y-direction
         if (downspout == 1) && thisY < fc(9,3) && (thisY >= (fc(9,3)-dsLength))...
                 && (thisX > (fc(9,2)-2*dx)) && (thisX < (fc(9,2)-dx))
-            %Downspout = 1, Back Garage
+            %The disconnected downspout, Back Garage
             slopeY(i,j) = landSlope;
         elseif (downspout == 1) && (thisY < (fc(9,4)-dy)) && (thisY > (fc(9,4)-2*dy))...
                 && (thisX > (fc(9,1)-dsLength)) && (thisX < fc(9,1))
-            %Downspout = 1, Side Garage
+            %The disconnected downspout, Side Garage
             slopeY(i,j) = 0;
+        elseif (downspout == 1) && thisY < fc(7,3) && (thisY >= (fc(7,3)-dsLength))...
+                && (((thisX > (fc(7,2)-2*dx)) && (thisX < (fc(7,2)-dx))) ||...
+                ((thisX < (fc(7,1)+2*dx)) && (thisX > (fc(7,1)+dx))))
+            %The disconnected downspouts, Front House
+            slopeY(i,j) = landSlope;
+        elseif (downspout == 1) && thisY > fc(7,4) && (thisY <= (fc(7,4)+dsLength))...
+                && (((thisX > (fc(7,2)-2*dx)) && (thisX < (fc(7,2)-dx))) ||...
+                ((thisX < (fc(7,1)+2*dx)) && (thisX > (fc(7,1)+dx))))
+            %The disconnected downspouts, Back House
+            slopeY(i,j) = -landSlope;
         elseif thisY < (fc(1,4)-2*dy) || parcelCover(i,j) == 5 ||...
                 ( (thisY > fc(2,3)) && (thisY < (fc(2,3)+dy)) )
             %Street & Alley & Driveway
@@ -170,18 +174,31 @@ for i = 1:ny
         elseif (thisY > (fc(2,3)+dy)) && (thisY < (fc(2,3)+2*dy))
             slopeY(i,j) = 0;
         elseif thisY < ymidHouse && thisY > fc(1,4) && parcelCover(i,j) < 7
-            %Front Yard
-            slopeY(i,j) = landSlope;
+            %Front Yard - add in microtopo
+            slopeY(i,j) = slopeY(i,j)+landSlope;
         elseif (thisY >= (fc(9,3)-dy)) && (thisY < fc(9,3)) &&...
                 (thisX >= (fc(9,1)-dx)) && (thisX < fc(9,2))
-            %Back of Garage
-            slopeY(i,j) = landSlope;
+            %Back of Garage - don't add in microtopo here (homeowner would
+            %slope away from garage)
+            slopeY(i,j) = 0;
         elseif thisY >= ymidHouse && parcelCover(i,j) < 7
-            %Back Yard
-            slopeY(i,j) = -landSlope;
+            %Back Yard - add in microtopo
+            slopeY(i,j) = slopeY(i,j)-landSlope;
+            if downspout == 1 && thisY < (fc(9,3)-dsLength) && thisY > (fc(9,3)-dsLength-dy)...
+                    && thisX > (fc(9,2)-2*dx) && thisX < (fc(9,2)-dx)
+                %cell just after back garage downspout (want to spill to
+                %side, not backward)
+                slopeY(i,j) = 0;
+            end
+            if parcelCover(i,j) == 5
+                %Don't add microtopo for driveway
+                slopeY(i,j) = -landSlope;
+            end
             if (downspout == 0) && (thisY >= fc(7,4)-3*dy) && (thisY <= fc(7,4)-2*dy) && thisX < fc(7,1)
+                %Connected downspout, House
                 slopeY(i,j) = 0;
             elseif (downspout == 0) && (thisY <= fc(9,3)+3*dy) && (thisY >= fc(9,3)+2*dy) && thisX > fc(9,2)
+                %Connected downspout, Garage
                 slopeY(i,j) = 0;
             end
         end
@@ -189,29 +206,39 @@ for i = 1:ny
         %EVERYWHERE ELSE, X-direction
         if (downspout == 1) && thisY < fc(9,3) && (thisY >= (fc(9,3)-dsLength))...
                 && (thisX > (fc(9,2)-2*dx)) && (thisX < (fc(9,2)-dx))
-            %Downspout = 1, Back Garage
+            %The disconnected downspout, Back Garage
             slopeX(i,j) = 0;
         elseif (downspout == 1) && (thisY < (fc(9,4)-dy)) && (thisY > (fc(9,4)-2*dy))...
                 && (thisX > (fc(9,1)-dsLength)) && (thisX < fc(9,1))
-            %Downspout = 1, Side Garage
+            %The disconnected downspout, Side Garage
             slopeX(i,j) = landSlope;
-        elseif thisX < fc(7,1) && thisY > fc(1,4) &&...
+        elseif (downspout == 1) && thisY < fc(7,3) && (thisY >= (fc(7,3)-dsLength))...
+                && (((thisX > (fc(7,2)-2*dx)) && (thisX < (fc(7,2)-dx))) ||...
+                ((thisX < (fc(7,1)+2*dx)) && (thisX > (fc(7,1)+dx))))
+            %The disconnected downspouts, Front House
+            slopeX(i,j) = 0;
+        elseif (downspout == 1) && thisY > fc(7,4) && (thisY <= (fc(7,4)+dsLength))...
+                && (((thisX > (fc(7,2)-2*dx)) && (thisX < (fc(7,2)-dx))) ||...
+                ((thisX < (fc(7,1)+2*dx)) && (thisX > (fc(7,1)+dx))))
+            %The disconnected downspouts, Back House
+            slopeX(i,j) = 0;
+        elseif thisX < fc(7,1) &&...
                 parcelCover(i,j) ~= 1 && parcelCover(i,j) ~= 2 &&...
                 parcelCover(i,j) ~= 5 && parcelCover(i,j) ~= 9
             %Left Yard (not Street or Alley or Driveway)
-            slopeX(i,j) = landSlope;
-        elseif thisX > fc(7,2) && thisY > fc(1,4) &&...
+            slopeX(i,j) = slopeX(i,j)+landSlope;
+        elseif thisX > fc(7,2) &&...
                 parcelCover(i,j) ~= 1 && parcelCover(i,j) ~= 2 &&...
                 parcelCover(i,j) ~= 5 && parcelCover(i,j) ~= 9
             %Right Yard (not Street or Alley or Driveway)
-            slopeX(i,j) = -landSlope;
+            slopeX(i,j) = slopeX(i,j)-landSlope;
         elseif (thisY > (fc(9,3))) && thisY < fc(9,4) &&...
                 thisX < fc(9,1) && (thisX > fc(9,1)-dx)
-            %Left of Garage
+            %Left of Garage - no microtopo here 
             slopeX(i,j) = landSlope;
-        elseif (thisY >= (fc(9,3)-2*dy)) && (thisY < fc(9,3)) &&...
+        elseif (thisY >= (fc(9,3)-dy)) && (thisY < fc(9,3)) &&...
                 (thisX >= (fc(9,1)-dx)) && (thisX < fc(9,2))
-            %Below Garage
+            %Below Garage - no microtopo here
             slopeX(i,j) = -landSlope;
         elseif (thisY < fc(1,4) || thisY > fc(2,3)) && thisX < (fc(1,2)/2)
             %Street & Alley

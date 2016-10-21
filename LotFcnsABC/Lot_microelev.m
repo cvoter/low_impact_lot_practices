@@ -28,8 +28,8 @@ DScalc = 0.112*RRcalc+0.031*RRcalc^2-0.012*RRcalc*landslope*100; %Depression sto
 %% Calculate slopes
 for i = 1:ny
     for j = 1:nx
-        slopeX(i,j) = (elev(i+1,j)-elev(i,j))/dx;
-        slopeY(i,j) = (elev(i,j+1)-elev(i,j))/dy;
+        slopeY(i,j) = (elev(i+1,j)-elev(i,j))/dy;
+        slopeX(i,j) = (elev(i,j+1)-elev(i,j))/dx;
     end
 end
 savename=strcat(lotname,'_microelev.mat');

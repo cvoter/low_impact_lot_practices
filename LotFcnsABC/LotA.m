@@ -25,16 +25,16 @@ developed = triggers(1);
 downspout = triggers(2);
 sidewalk = triggers(3);
 
-dsLength = details(6);
-sidewalkOffset = details(7)*sidewalk;
+dsLength = details(5);
+sidewalkOffset = details(6)*sidewalk;
 
 %% FEATURE SIZES (enter in meters)
 %Street = 1
 streetLength = 6;
 
 %Domain
-parcelWidth = xU;
-parcelLength = yU-streetLength;
+parcelWidth = dx*nx;
+parcelLength = dy*ny-streetLength;
 
 %Alley = 2
 %unused
