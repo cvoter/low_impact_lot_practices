@@ -28,12 +28,13 @@ set(0,'defaultTextFontSize',12,'defaultTextFontName','Gill Sans MT',...
 
 %% 1. LOT INFO
 %Note units specified below. Unless otherwise noted, L[=]m, T[=]hr
-locname = 'loc51';
-soilname = 'SiL10c';
-lotname = 'LotB_08';
-metyear = 'WY14';
-starttype = 'wy';
-runname = strcat(locname,soilname,'B');
+locname = 'loc51'; %used to load a) met forcing, b) 1D spinup
+soilname = 'SiL10c'; %used to load a) soil parameters, b) 1D spinup
+lotname = 'LotB_08_s6'; %used to load outputs from PFlots (slopes, subsurfaceFeature, domainInfo, drv_vegm)
+metyear = 'WY14'; % used to load met forcing
+starttype = 'wy'; %used to load 1D spinup
+% runname = strcat(locname,soilname,'B');
+runname = 'smallDS6';
 
 %% 2. DEFINE DIRS AND FILENAMES BASED ON INPUTS
 inDir = strcat('K:\Parflow\PFinput\ModelIn\',runname); mkdir(inDir);

@@ -38,7 +38,7 @@ addpath('J:\Research\Parflow\inputs\matlab_in');
 
 %% 1. LOT INFO
 %Note units specified below. Unless otherwise noted, L[=]m, T[=]hr
-lotname = 'LotB_08';
+lotname = 'LotB_08_s6';
 saveDir = strcat('K:\Parflow\PFinput\LotType\',lotname); mkdir(saveDir);
 
 %Layout triggers

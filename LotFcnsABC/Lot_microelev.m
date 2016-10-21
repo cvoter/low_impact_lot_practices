@@ -3,6 +3,9 @@ function [] = Lot_microelev(nx,dx,ny,dy,sd,landslope,lotname)
 %Carolyn Voter
 %October 18, 2016
 
+%RR = 2.85cm  = 5mm depression storage
+%RR = 1.75cm  = 2.5mm depression storage
+
 %Example command:
 %Lot_microelev(48,0.5,88,0.5,0.0285,0.02,'LotA');
 %Lot_microelev(27,0.5,84,0.5,0.0285,0.02,'LotB');
