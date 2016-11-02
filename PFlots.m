@@ -38,7 +38,7 @@ addpath('J:\Research\Parflow\inputs\matlab_in');
 
 %% 1. LOT INFO
 %Note units specified below. Unless otherwise noted, L[=]m, T[=]hr
-lotname = 'LotB_08_s6';
+lotname = 'LotB_08_test01';
 saveDir = strcat('K:\Parflow\PFinput\LotType\',lotname); mkdir(saveDir);
 
 %Layout triggers
@@ -101,8 +101,36 @@ slopeFcn = {@LotA_slopes,@LotB_slopes,@LotC_slopes};
 %     6=frontwalk, 7=house, 8=house2 (only neede for LgSub2), 9=garage
 
 %Slopes
-[slopeX,slopeY] = slopeFcn{lotType}(x,nx,dx,y,ny,dy,fc,parcelCover,triggers,details);
+[slopeX,slopeY,elev,DScalc] = slopeFcn{lotType}(x,nx,dx,xL,xU,y,ny,dy,yL,yU,X,Y,fc,parcelCover,triggers,details);
 cd('J:\Research\Parflow\inputs\matlab_in')
+% %Change Slopes
+% pairs = [74,5;... %1. change sign on slopeY
+%     77,6;... %2. swap slopeX and slopeY
+%     76,8;... %3. change sign on slopeY
+%     64,12;... %4. swap slopeX and slopeY; change sign on both
+%     65,12;... %5. swap slopeX and slopeY; change sign on both
+%     59,25;... %6. swap slopeX and slopeY;
+%     60,25;... %7. swap slopeX and slopeY;
+%     63,26;... %X-NAY 8. change sign on slopeX
+%     11,11;... %9. swap slopeX and slopeY
+%     11,15]; %10. swap slopeX and slopeY
+% for i = 1:length(pairs)
+%     %Swap slopeX and slopeY
+%     if i == 2 || i == 4 || i == 5 || i == 6 || i == 7 || i == 9 || i == 10
+%         tempX = slopeX(pairs(i,1),pairs(i,2));
+%         tempY = slopeY(pairs(i,1),pairs(i,2));
+%         slopeX(pairs(i,1),pairs(i,2)) = tempY;
+%         slopeY(pairs(i,1),pairs(i,2)) = tempX;
+%     end
+%     if i == 1 || i == 3 || i == 4 || i == 5
+%         tempY = slopeY(pairs(i,1),pairs(i,2));
+%         slopeY(pairs(i,1),pairs(i,2)) = -tempY;
+%     end
+%     if i == 4 || i == 5
+%         tempX = slopeX(pairs(i,1),pairs(i,2));
+%         slopeX(pairs(i,1),pairs(i,2)) = -tempX;
+%     end
+% end
 slopex = matrixTOpfsa(slopeX);
 slopey = matrixTOpfsa(slopeY);
 %% 4. INDICATOR FILES: 1 = pervious, 2 = impervious
