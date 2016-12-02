@@ -31,22 +31,22 @@
 %       2. Colorful map of impervious features and slopes.
 
 clear all; close all; clc;
-set(0,'defaultTextFontSize',12,'defaultTextFontName','Gill Sans MT',...
-    'defaultAxesFontSize',12,'defaultAxesFontName','Gill Sans MT')
+set(0,'defaultTextFontSize',12,'defaultTextFontName','Helvetica',...
+    'defaultAxesFontSize',12,'defaultAxesFontName','Helvetica')
 load('greyImpMap.mat');
 addpath('J:\Research\Parflow\inputs\matlab_in');
 
 %% 1. LOT INFO
 %Note units specified below. Unless otherwise noted, L[=]m, T[=]hr
-lotname = 'LotB_08_test01';
+lotname = 'LotB_07';
 saveDir = strcat('K:\Parflow\PFinput\LotType\',lotname); mkdir(saveDir);
 
 %Layout triggers
 lotType = 2; % 1=LotA, 2=LotB, 3=LotC
 developed = 1; % 0=undeveloped; 1=developed
-downspout = 1; %0=fully connected; 1=downspouts at corners; 2=no downspouts
-sidewalk = 1; %0=connected sidewalk; 1=offset sidewalk
-transverse = 1; %0=no transverse slope; 1=transverse slope on driveway & front walk
+downspout = 0; %0=fully connected; 1=downspouts at corners; 2=no downspouts
+sidewalk = 0; %0=connected sidewalk; 1=offset sidewalk
+transverse = 0; %0=no transverse slope; 1=transverse slope on driveway & front walk
 microType = 1; %0=no microtopography, 1=microtopography
 triggers = [developed,downspout,sidewalk,transverse,microType];
 
@@ -101,7 +101,7 @@ slopeFcn = {@LotA_slopes,@LotB_slopes,@LotC_slopes};
 %     6=frontwalk, 7=house, 8=house2 (only neede for LgSub2), 9=garage
 
 %Slopes
-[slopeX,slopeY,elev,DScalc] = slopeFcn{lotType}(x,nx,dx,xL,xU,y,ny,dy,yL,yU,X,Y,fc,parcelCover,triggers,details);
+[slopeX,slopeY,elev,DScalc,sumflag] = slopeFcn{lotType}(x,nx,dx,xL,xU,y,ny,dy,yL,yU,X,Y,fc,parcelCover,triggers,details);
 cd('J:\Research\Parflow\inputs\matlab_in')
 % %Change Slopes
 % pairs = [74,5;... %1. change sign on slopeY
@@ -247,8 +247,9 @@ fprintf(fid,'%.0f\n',R); %15 integer
 fclose(fid);
 
 % Post-processing input
+% If add/remove anything here, be sure to also adjust in PFallin.m
 save('domainInfo.mat','dx','dy','dz','nx','ny','nz','x','y','z','domainArea','P','Q','R',...
-    'fc','parcelCover','slopeX','slopeY','NaNimp','pervX','pervY','-v7.3');
+    'fc','parcelCover','slopeX','slopeY','NaNimp','pervX','pervY','elev','DScalc','-v7.3');
 
 %Pervious
 fid = fopen('subsurfaceFeature.sa','a');

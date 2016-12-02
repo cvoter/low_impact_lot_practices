@@ -1,4 +1,4 @@
-function [slopeX,slopeY,elev,DScalc] = LotB_slopes(x,nx,dx,xL,xU,y,ny,dy,yL,yU,X,Y,fc,parcelCover,triggers,details)
+function [slopeX,slopeY,elev,DScalc,sumflag] = LotB_slopes(x,nx,dx,xL,xU,y,ny,dy,yL,yU,X,Y,fc,parcelCover,triggers,details)
 %Created by Carolyn Voter
 %February 20, 2015
 %Major modifications September 11, 2015
@@ -173,7 +173,7 @@ end
 M = (slopeX.^2+slopeY.^2).^0.5;
 %% 5. CHECK FOR PITS, WHEN MICROTOPGRAPHY EXISTS
 if microType == 1
-    for iter = 1:100
+    for iter = 1:500
         for i = 1:ny
             for j = 1:nx
                 if parcelCover(i,j) == 0 && M(i,j) == 0
@@ -211,8 +211,9 @@ if microType == 1
         end
         M = (slopeX.^2+slopeY.^2).^0.5;
     end
-    
     sumflag = squeeze(sum(sum(flag))); %Number of cells with M = 0 each iteration
+else
+    sumflag = 0;
 end
 %% 6. CHECK DEPRESSION STORAGE
 elevR = elev - elevSlopes;
@@ -356,6 +357,12 @@ for i = 1:ny
             slopeY(i,j) = landSlope;
         end
         
+        %FORCE FRONTWALK SLOPE
+        if parcelCover(i,j) == 6 && thisY < fc(7,3)
+            slopeX(i,j) = 0;
+            slopeY(i,j) = landSlope;
+        end
+        
         %FORCE STREET & ALLEY SLOPE
         if parcelCover(i,j) == 1 && thisY > fc(1,4)-dy
             slopeX(i,j) = 0;
@@ -425,6 +432,11 @@ for i = 1:ny
             %just right of garage
             if slopeX(i,j) > 0
                 slopeX(i,j) = -slopeX(i,j);
+            end
+        elseif thisY < fc(4,3) && thisY > fc(4,3)-dy
+            %just below sidewalk
+            if slopeY(i,j) < 0
+                slopeY(i,j) = -slopeY(i,j);
             end
         end
     end
