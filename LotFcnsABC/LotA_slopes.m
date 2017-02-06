@@ -1,7 +1,8 @@
-function [slopeX,slopeY] = LotA_slopes(x,nx,dx,y,ny,dy,fc,parcelCover,triggers,details)
+function [slopeX,slopeY,elev,DScalc,sumflag] = LotA_slopes(x,nx,dx,xL,xU,y,ny,dy,yL,yU,X,Y,fc,parcelCover,triggers,details,lotbase)
 %Created by Carolyn Voter
 %May 15, 2014
 %Major modifications September 11, 2015
+%Even more major modifications February 6, 2017
 
 %Creates 2D slope matrix in x and y direction given feature locations for
 %Large Suburban Lot 1, as follows:
@@ -27,11 +28,7 @@ function [slopeX,slopeY] = LotA_slopes(x,nx,dx,y,ny,dy,fc,parcelCover,triggers,d
 %PARCEL COVER - COLUMNS
 % 1=left X   2=right X    3=lower Y    4=upper Y
 
-%OTHER NOTES:
-%Positive Slope points uphill   --> high coordinate = highest elev
-%Negative Slope points downhill --> low coordinate = highest elev
-
-%% INPUTS
+%% 1. INPUTS
 developed = triggers(1);
 downspout = triggers(2);
 sidewalk = triggers(3);
@@ -45,160 +42,254 @@ transverseSlope = details(4);
 dsLength = details(5);
 sidewalkOffset = details(6)*sidewalk;
 
-%% FUNCTION
+inputDir = 'J:\Research\Subprojects\ResidentialLayouts\Madison\parflow';
 
 %CALCULATED PARAMETERS
-ymidHouse = (fc(7,3)+fc(7,4))/2;    xmidHouse = (fc(7,1)+fc(7,2))/2;
+ymidHouse = (fc(7,3)+fc(8,4))/2;    xmidHouse = (fc(7,1)+fc(8,2))/2;
 ymidGarage = (fc(9,3)+fc(9,4))/2;   xmidGarage = (fc(9,1)+fc(9,2))/2;
 
-%% DEVELOPED SLOPES
+%% 2. DEVELOPED ELEVATIONS
+%format = x,y,elev
+%Front of lot
+zElev = [xL,yL,0;...%1. left edge
+    fc(7,1),yL,0;... %2. left edge of house
+    fc(9,2),yL,0;... %3. right edge of house
+    xU,yL,0]; %4. right edge
+%Front of house
+zTOf = fc(9,3); %distance front to garage
+fElev = [xL,fc(9,3),(zTOf-fc(7,1))*landSlope;... %1. left edge
+    fc(7,1),fc(9,3),zTOf*landSlope;... %2. left edge of house
+    fc(9,2),fc(9,3),zTOf*landSlope;... %3. right edge of house
+    xU,fc(9,3),(zTOf-(xU-fc(9,2)))*landSlope]; %4. right edge
+%Rear of house
+sElev = [xL,fc(8,4),fElev(1,3);... %1. left edge
+    fc(7,1),fc(8,4),fElev(2,3);...%2. left edge of house
+    fc(9,2),fc(8,4),fElev(3,3);... %3. right edge of house
+    xU,fc(8,4),fElev(4,3)]; %4. right edge
+%Rear of lot
+hTOr = yU - fc(8,4); %distance house to rear
+rElev = [xL,yU,sElev(1,3)-hTOr*landSlope;... %1. left edge
+    fc(7,1),yU,sElev(2,3)-hTOr*landSlope;... %2. left edge of house
+    fc(9,2),yU,sElev(3,3)-hTOr*landSlope;... %3. right edge of house
+    xU,yU,sElev(4,3)-hTOr*landSlope]; %4. right edge
+allElev = [zElev;fElev;sElev;rElev];
+elev = griddata(allElev(:,1),allElev(:,2),allElev(:,3),X,Y);
+elevSlopes = elev;
+
+%% 3. ADD MICROTOPOGRAPHY
 if microType == 1
-    load('J:\Research\Parflow\inputs\matlab_in\LotFcnsABC\LotA_microelev.mat');
-else
-    slopeX = zeros([ny nx]);
-    slopeY = zeros([ny nx]);
+    load(strcat(inputDir,'\',lotbase,'_microelev.mat'));
+    for i = 1:ny
+        for j = 1:nx
+            if parcelCover(i,j) == 0
+                elev(i,j) = elev(i,j)+microElev(i,j);
+            end
+        end
+    end
 end
+
+minElev = abs(min(min(elev)));
+elev = elev+minElev;
+elevSlopes = elevSlopes+minElev;
+
+%% 4. CALCULATE INITIAL SLOPES
+for i = 1:ny
+    for j = 1:nx
+        %SlopeY
+        if i == 1
+            slopeY(i,j) = (elev(i+1,j)-elev(i,j))/dy;
+        elseif i == ny
+            slopeY(i,j) = (elev(i,j)-elev(i-1,j))/dy;
+        else
+            if elev(i+1,j) > elev(i,j) && elev(i-1,j) > elev(i,j)
+                slopeY(i,j) = 0;
+            else slopeY(i,j) = (elev(i+1,j)-elev(i-1,j))/(2*dy);
+            end
+        end
+        %SlopeY
+        if j == 1
+            slopeX(i,j) = (elev(i,j+1)-elev(i,j))/dx;
+        elseif j == nx
+            slopeX(i,j) = (elev(i,j)-elev(i,j-1))/dx;
+        else
+            if elev(i,j+1) > elev(i,j) && elev(i,j-1) > elev(i,j)
+                slopeX(i,j) = 0;
+            else slopeX(i,j) = (elev(i,j+1)-elev(i,j-1))/(2*dx);
+            end
+        end
+    end
+end
+M = (slopeX.^2+slopeY.^2).^0.5;
+%% 5. CHECK FOR PITS, WHEN MICROTOPGRAPHY EXISTS
+if microType == 1
+    for iter = 1:500
+        for i = 1:ny
+            for j = 1:nx
+                if parcelCover(i,j) == 0 && M(i,j) == 0
+                    elev(i,j) = elev(i,j) + 0.002;
+                    flag(i,j,iter) = 1;
+                end
+            end
+        end
+        
+        for i = 1:ny
+            for j = 1:nx
+                %SlopeY
+                if i == 1
+                    slopeY(i,j) = (elev(i+1,j)-elev(i,j))/dy;
+                elseif i == ny
+                    slopeY(i,j) = (elev(i,j)-elev(i-1,j))/dy;
+                else
+                    if elev(i+1,j) > elev(i,j) && elev(i-1,j) > elev(i,j)
+                        slopeY(i,j) = 0;
+                    else slopeY(i,j) = (elev(i+1,j)-elev(i-1,j))/(2*dy);
+                    end
+                end
+                %SlopeY
+                if j == 1
+                    slopeX(i,j) = (elev(i,j+1)-elev(i,j))/dx;
+                elseif j == nx
+                    slopeX(i,j) = (elev(i,j)-elev(i,j-1))/dx;
+                else
+                    if elev(i,j+1) > elev(i,j) && elev(i,j-1) > elev(i,j)
+                        slopeX(i,j) = 0;
+                    else slopeX(i,j) = (elev(i,j+1)-elev(i,j-1))/(2*dx);
+                    end
+                end
+            end
+        end
+        M = (slopeX.^2+slopeY.^2).^0.5;
+    end
+    sumflag = squeeze(sum(sum(flag))); %Number of cells with M = 0 each iteration
+else
+    sumflag = 0;
+end
+%% 6. CHECK DEPRESSION STORAGE
+elevR = elev - elevSlopes;
+k = 1;
+for i = 1:ny
+    for j = 1:nx
+        if parcelCover(i,j) == 0
+            elevRR(k) = elevR(i,j);
+            k = k+1;
+        end
+    end
+end
+RRinc = 0;
+for i = 1:k-1
+    RRinc = RRinc + (elevRR(i) - mean(elevRR))^2;
+end
+RRcalc = sqrt((1/(k-2))*RRinc)*100; %Random roughness [cm]
+DScalc = 0.112*RRcalc+0.031*RRcalc^2-0.012*RRcalc*landSlope*100; %Depression storage [cm]
+
+%% 7. ADD MASK OF IMPERVIOUS SLOPES
 for i = 1:ny
     thisY = y(i);
     for j = 1:nx
         thisX = x(j);
-        %HOUSE & GARAGE (depends on downspouts)
-        if downspout == 0 && parcelCover(i,j) >= 7 
-            %FULLY CONNECTED
-            %Y-direction
-            if thisY < (fc(9,4)-3*dy)
-                %Front of buildings
-                slopeY(i,j) = -roofSlope;
-            elseif thisY >= (fc(9,4)-2*dy)
-                slopeY(i,j) = roofSlope;
-            end
-            %X-direction
-            if ( thisY <= fc(9,3) && thisX <= fc(9,2)+dx ) ||...
-                    ( thisX <= fc(9,1)+dx && thisY < fc(9,4)-4*dy )
-                slopeX(i,j) = -roofSlope; %Left house roof below garage, parts of left garage roof
-            elseif ( thisY <= fc(9,3) && thisX <= fc(9,2)+2*dx ) ||...
-                    ( thisX <= fc(9,1)+2*dx && thisY < fc(9,4)-3*dy ) ||...
-                    ( thisX <= fc(9,1)+2*dx && thisY > fc(9,4)-2*dy )
-                slopeX(i,j) = 0;
-            else slopeX(i,j) = roofSlope; %Elsewhere on buildings
+        
+        %ROOFS
+        if downspout == 0
+            %0: FULLY CONNECTED
+            if ( (parcelCover(i,j) == 7) || (parcelCover(i,j) == 8) || (parcelCover(i,j) == 9) || ...
+                    (parcelCover(i,j) == 4) && (thisY > fc(4,4)) ) %gather all house, garage, and downspout chutes
+                %Y-direction
+                if (thisY < (fc(8,4)-3*dy))
+                    slopeY(i,j) = -roofSlope; %Front of garage & house
+                elseif (thisY > (fc(8,4)-2*dy))
+                    slopeY(i,j) = roofSlope; %Back of garage & house
+                else
+                    slopeY(i,j) = 0; %Side "downspout" chute
+                end
+                %X-direction
+                if (thisY > fc(8,4)-3*dy) && (thisY < fc(8,4)-2*dy)
+                    slopeX(i,j) = roofSlope; %Side "downspout" chute to left
+                else
+                    slopeX(i,j) = 0; %Rest of roof has no need to slant in X direction
+                end
             end
         elseif downspout == 1
-            %DOWNSPOUT AT CORNERS
-            %Y-direction
-            if thisX >= fc(9,1)+dx && parcelCover(i,j) == 9
-                %Garage
-                if (thisY < ymidGarage && thisY >= fc(9,3)+dy)...
-                        || (thisY < ymidGarage && thisX <= fc(9,1)+2*dx)...
-                        || (thisY >= (fc(9,4)-dy) && thisX > (fc(9,1)+3*dx))
-                    slopeY(i,j) = roofSlope;
-                elseif (thisY > ymidGarage && thisY <= fc(9,4)-dy)...
-                        || (thisY > ymidGarage && thisX <= fc(9,1)+2*dx)...
-                        || (thisY <= (fc(9,3)+dy) && thisX > (fc(9,1)+3*dx))
-                    slopeY(i,j) = -roofSlope;
+            %1: DOWNSPOUT AT CORNERS
+            if ( (parcelCover(i,j) == 7) || (parcelCover(i,j) == 8) || (parcelCover(i,j) == 9) || ...
+                    (parcelCover(i,j) == 4) && (thisY > fc(4,4)) ) %gather all house, garage, and downspout chutes
+                %Y-direction
+                if (thisY <= ymidHouse) && ...
+                        ( ((thisX < fc(7,1)+2*dx) && (thisX > fc(7,1)+dx)) || ...
+                        ((thisX < fc(7,2)-dx) && (thisX > fc(7,2)-2*dx)) )
+                    slopeY(i,j) = roofSlope; %Front downspouts slope to front
+                elseif (thisY > ymidHouse) && ...
+                        ( ((thisX < fc(8,1)+2*dx) && (thisX > fc(8,1)+dx)) || ...
+                        ((thisX < fc(8,2)-dx) && (thisX > fc(8,2)-2*dx)) )
+                    slopeY(i,j) = -roofSlope; %Rear downspouts slope to rear
+                else
+                    slopeY(i,j) = 0; %Most of roof has no Y slope
                 end
-            elseif thisX >= (fc(7,1)+dx) && thisX <= (fc(7,2)-dx) && parcelCover(i,j) == 7
-                %House
-                if ( thisY < ymidHouse && thisY >= fc(7,3)+dy )...
-                        || ( thisY < ymidHouse && thisX <=(fc(7,1)+2*dx) )...
-                        || ( thisY < ymidHouse && thisX >=(fc(7,2)-2*dx) )...
-                        || ( thisY > fc(7,4)-dy && thisX >(fc(7,1)+3*dx) && thisX < xmidHouse )...
-                        || ( thisY > fc(7,4)-dy && thisX <(fc(7,2)-3*dx) && thisX > xmidHouse)
-                    slopeY(i,j) = roofSlope;
-                elseif ( thisY > ymidHouse && thisY <= fc(7,4)-dy )...
-                        || ( thisY > ymidHouse && thisX <=(fc(7,1)+2*dx) )...
-                        || ( thisY > ymidHouse && thisX >=(fc(7,2)-2*dx) )...
-                        || ( thisY < fc(7,3)+dy && thisX >(fc(7,1)+3*dx) && thisX < xmidHouse )...
-                        || ( thisY < fc(7,3)+dy && thisX <(fc(7,2)-3*dx) && thisX > xmidHouse)
-                    slopeY(i,j) = -roofSlope;
+                %X-direction
+                if thisY > ymidHouse %rear of house
+                    if (thisX < fc(8,1)+dx) || ((thisX > xmidHouse) && (thisX < fc(8,2)-2*dx)) 
+                        slopeX(i,j) = -roofSlope; %slope right
+                    elseif ((thisX <= xmidHouse) && (thisX > fc(8,1)+2*dx)) || (thisX > fc(8,2)-dx)
+                        slopeX(i,j) = roofSlope; %slope left
+                    else
+                        slopeX(i,j) = 0; % chutes have no x slope
+                    end
+                else %front of house
+                    if (thisX < fc(7,1)+dx) || ((thisX > xmidHouse) && (thisX < fc(7,2)-2*dx)) 
+                        slopeX(i,j) = -roofSlope; %slope right
+                    elseif ((thisX <= xmidHouse) && (thisX > fc(7,1)+2*dx)) || (thisX > fc(7,2)-dx)
+                        slopeX(i,j) = roofSlope; %slope left
+                    else
+                        slopeX(i,j) = 0; % chutes have no x slope
+                    end
                 end
-            end
-            %X-direction
-            if parcelCover(i,j) == 9 
-                %Garage
-                if thisX > fc(9,1)+2*dx
-                    slopeX(i,j) = roofSlope;
-                elseif thisX <= fc(9,1)+dx
-                    slopeX(i,j) = -roofSlope;
-                end
-            elseif parcelCover(i,j) == 7 
-                %House
-                if (thisX < xmidHouse && thisX > fc(7,1)+2*dx)...
-                        || (thisX > xmidHouse && thisX > fc(7,2)-dx)
-                    slopeX(i,j) = roofSlope;
-                elseif (thisX > xmidHouse && thisX < fc(7,2)-2*dx)...
-                        || (thisX < xmidHouse && thisX < fc(7,1)+dx)
-                    slopeX(i,j) = -roofSlope;
-                end
-            end
-        elseif downspout == 2
-            %NO DOWNSPOUTS
-            if (thisY < ymidGarage) && parcelCover(i,j) == 9;
-                %Front Garage
-                slopeY(i,j) = roofSlope;
-            elseif (thisY >= ymidGarage) && parcelCover(i,j) == 9;
-                %Back Garage
-                slopeY(i,j) = -roofSlope;
-            elseif (thisY < ymidHouse) && parcelCover(i,j) == 7;
-                %Front House
-                slopeY(i,j) = roofSlope;
-            elseif (thisY >= ymidHouse) && parcelCover(i,j) == 7;
-                %Back House
-                slopeY(i,j) = -roofSlope;
             end
         end
         
-        %EVERYWHERE ELSE, Y-direction
-        if thisY < (fc(1,4)-2*dy)
-            %Street
-            slopeY(i,j) = -streetSlope;
-        elseif thisY > (fc(1,4)-dy) && thisY < fc(1,4)
-            slopeY(i,j) = streetSlope;
-        elseif thisY < ymidHouse && thisY > fc(1,4) && parcelCover(i,j) < 7
-            %Front Yard
+        %FORCE SIDEWALK SLOPE
+        if parcelCover(i,j) == 4 && thisY < fc(4,4)
+            slopeX(i,j) = 0;
             slopeY(i,j) = landSlope;
-        elseif thisY >= ymidHouse && parcelCover(i,j) < 7
-            %Back Yard
-            slopeY(i,j) = -landSlope;
-            if (downspout == 0) && (thisY >= fc(9,4)-3*dy) && (thisY <= fc(9,4)-2*dy) && thisX < fc(9,1)
-                slopeY(i,j) = 0;
+        end
+                
+        %FORCE DRIVEWAY AND FRONT WALK
+        if transverse == 0 %no transverse slope
+            if (parcelCover(i,j) == 6) || (parcelCover(i,j) == 5)
+                slopeX(i,j) = 0;
+                slopeY(i,j) = landSlope;
+            end
+        elseif transverse == 1 % transverse slope
+            if (parcelCover(i,j) == 6) || (parcelCover(i,j) == 5)
+                slopeX(i,j) = -landSlope;
+                slopeY(i,j) = landSlope;
             end
         end
         
-        %EVERYWHERE ELSE, X-direction
-        if thisX < fc(9,1) && thisY > fc(1,4)
-            %Left Yard (not Street)
-            slopeX(i,j) = landSlope;
-        elseif thisX > fc(7,2) && thisY > fc(1,4)
-            %Right Yard (not Street)
-            slopeX(i,j) = -landSlope;
-        elseif thisY < fc(1,4) && thisX < fc(1,2)/2
-            %Street
-            slopeX(i,j) = landSlope;
-        elseif thisY < fc(1,4) && thisX >= fc(1,2)/2
-            %Street
-            slopeX(i,j) = -landSlope;
+        %FIX SLOPES NEAR HOUSE AND GARAGE
+        if thisX > fc(7,1) && thisX < fc(7,2) && thisY < fc(7,3) && thisY > fc(7,3)-dy
+            %just below house
+            if slopeY(i,j) < 0
+                slopeY(i,j) = -slopeY(i,j);
+            end
+        elseif thisX > fc(8,1) && thisX < fc(8,2) && thisY > fc(8,4) && thisY < fc(8,4)+dy
+            %just above house
+            if slopeY(i,j) > 0
+                slopeY(i,j) = -slopeY(i,j);
+            end
+        elseif thisY > fc(7,3) && thisY < fc(8,4) && thisX < fc(7,1) && thisX > fc(7,1)-dx
+            %just left of house
+            if slopeX(i,j) < 0
+                slopeX(i,j) = -slopeX(i,j);
+            end
+        elseif thisY > fc(9,3) && thisY < fc(8,4) && thisX > fc(8,2) && thisX < fc(8,2)+dx
+            %just right of house
+            if slopeX(i,j) > 0
+                slopeX(i,j) = -slopeX(i,j);
+            end
         end
     end
 end
 
-%% TRANSVERSE SLOPES
-if transverse == 1
-    for i = 1:ny
-        thisY = y(i);
-        for j = 1:nx
-            thisX = x(j);
-            %Driveway x-slope
-            if parcelCover(i,j) == 5
-                slopeX(i,j) = transverseSlope;
-            end
-            %Frontwalk x-slope
-            if parcelCover(i,j) == 6
-                slopeX(i,j) = transverseSlope;
-            end
-        end
-    end
-end
-%% UNDEVELOPED
+%% 8. UNDO ALL FOR UNDEVELOPED
 if developed == 0
     slopeX = zeros([ny nx]);
     slopeY = zeros([ny nx]);
@@ -206,14 +297,14 @@ if developed == 0
         thisY = y(i);
         for j = 1:nx
             thisX = x(j);
-            if (thisY < y(ny/2))
+            if (thisY < yU/2)
                 slopeY(i,j) = landSlope;
-            elseif (thisY >= y(ny/2))
+            elseif (thisY >= yU/2)
                 slopeY(i,j) = -landSlope;
             end
             if (thisX < 1.5)
                 slopeX(i,j) = landSlope;
-            elseif (thisX >= (x(nx) - 1.5))
+            elseif (thisX >= (xU - 1.5))
                 slopeX(i,j) = -landSlope;
             end
         end

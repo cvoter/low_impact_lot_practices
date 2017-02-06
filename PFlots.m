@@ -38,21 +38,22 @@ addpath('J:\Research\Parflow\inputs\matlab_in');
 
 %% 1. LOT INFO
 %Note units specified below. Unless otherwise noted, L[=]m, T[=]hr
-lotname = 'LotB_07';
+lotbase = 'AWRA_40';
+lotname = strcat(lotbase,'L');
 saveDir = strcat('K:\Parflow\PFinput\LotType\',lotname); mkdir(saveDir);
 
 %Layout triggers
-lotType = 2; % 1=LotA, 2=LotB, 3=LotC
+lotType = 1; % 1=LotA, 2=LotB, 3=LotC
 developed = 1; % 0=undeveloped; 1=developed
-downspout = 0; %0=fully connected; 1=downspouts at corners; 2=no downspouts
-sidewalk = 0; %0=connected sidewalk; 1=offset sidewalk
-transverse = 0; %0=no transverse slope; 1=transverse slope on driveway & front walk
+downspout = 1; %0=fully connected; 1=downspouts at corners; 2=no downspouts
+sidewalk = 1; %0=connected sidewalk; 1=offset sidewalk
+transverse = 1; %0=no transverse slope; 1=transverse slope on driveway & front walk
 microType = 1; %0=no microtopography, 1=microtopography
 triggers = [developed,downspout,sidewalk,transverse,microType];
 
 %Layout slopes and distances
 landSlope = 0.02; %magnitude of land slope
-roofSlope=0.20;streetSlope=landSlope;
+roofSlope=0.20; streetSlope=landSlope;
 transverseSlope = landSlope; %driveway x-slope, frontwalk x-slope
 dsLength = 1.5; %downspout length [m]. Only used if downspouts=2.
 sidewalkOffset = 2; %distance between sidewalk and street, [m]
@@ -60,19 +61,20 @@ details = [landSlope,roofSlope,streetSlope,transverseSlope,dsLength,sidewalkOffs
 
 %% 2. DOMAIN AND PROCESSOR INFO
 %Unique to each lot type
-if lotType == 1 %LotA (LgSub)
-    xL = 0; dx = 0.5; nx = 48;
-    yL = 0; dy =0.5; ny = 88;
-    P = 2; Q = 4;
-elseif lotType == 2 %LotB (SmUrb)
-    xL = 0; dx = 0.5; nx = 27;
-    yL = 0; dy =0.5; ny = 84;
-    P = 1; Q = 4;
-elseif lotType == 3 %LotC (SmUrb)
-    xL = 0; dx = 0.5; nx = 32;
-    yL = 0; dy =0.5; ny = 84;
-    P = 1; Q = 4;
-end
+% if lotType == 1 %LotA (LgSub)
+%     xL = 0; dx = 0.5; nx = 48;
+%     yL = 0; dy =0.5; ny = 88;
+%     P = 2; Q = 4;
+% elseif lotType == 2 %LotB (SmUrb)
+%     xL = 0; dx = 0.5; nx = 27;
+%     yL = 0; dy =0.5; ny = 84;
+%     P = 1; Q = 4;
+% elseif lotType == 3 %LotC (SmUrb)
+%     xL = 0; dx = 0.5; nx = 32;
+%     yL = 0; dy =0.5; ny = 84;
+%     P = 1; Q = 4;
+% end
+load(strcat('J:\Research\Subprojects\ResidentialLayouts\Madison\parflow\',lotname,'.mat'));
 zL = 0; dz = 0.1; nz = 100;
 R = 1;  %No. Z processors
 
@@ -91,46 +93,19 @@ domainArea = dx*dy*nx*ny;
 %% 3. CALL LAND COVER AND SLOPE FUNCTIONS
 cd('J:\Research\Parflow\inputs\matlab_in\LotFcnsABC')
 %Lot Layout
-lotFcn = {@LotA,@LotB,@LotC};
+% lotFcn = {@LotA,@LotB,@LotC};
 slopeFcn = {@LotA_slopes,@LotB_slopes,@LotC_slopes};
 
 %Land Cover
-[fc,parcelCover,used] = lotFcn{lotType}(dx,dy,nx,ny,x,y,triggers,details);
+% [fc,parcelCover,used] = lotFcn{lotType}(dx,dy,nx,ny,x,y,triggers,details);
 %   Output Key:
 %     0=turfgrass, 1=street, 2=alley, 3=parking lot, 4=sidewalk, 5=driveway
 %     6=frontwalk, 7=house, 8=house2 (only neede for LgSub2), 9=garage
 
+
 %Slopes
-[slopeX,slopeY,elev,DScalc,sumflag] = slopeFcn{lotType}(x,nx,dx,xL,xU,y,ny,dy,yL,yU,X,Y,fc,parcelCover,triggers,details);
+[slopeX,slopeY,elev,DScalc,sumflag] = slopeFcn{lotType}(x,nx,dx,xL,xU,y,ny,dy,yL,yU,X,Y,fc,parcelCover,triggers,details,lotbase);
 cd('J:\Research\Parflow\inputs\matlab_in')
-% %Change Slopes
-% pairs = [74,5;... %1. change sign on slopeY
-%     77,6;... %2. swap slopeX and slopeY
-%     76,8;... %3. change sign on slopeY
-%     64,12;... %4. swap slopeX and slopeY; change sign on both
-%     65,12;... %5. swap slopeX and slopeY; change sign on both
-%     59,25;... %6. swap slopeX and slopeY;
-%     60,25;... %7. swap slopeX and slopeY;
-%     63,26;... %X-NAY 8. change sign on slopeX
-%     11,11;... %9. swap slopeX and slopeY
-%     11,15]; %10. swap slopeX and slopeY
-% for i = 1:length(pairs)
-%     %Swap slopeX and slopeY
-%     if i == 2 || i == 4 || i == 5 || i == 6 || i == 7 || i == 9 || i == 10
-%         tempX = slopeX(pairs(i,1),pairs(i,2));
-%         tempY = slopeY(pairs(i,1),pairs(i,2));
-%         slopeX(pairs(i,1),pairs(i,2)) = tempY;
-%         slopeY(pairs(i,1),pairs(i,2)) = tempX;
-%     end
-%     if i == 1 || i == 3 || i == 4 || i == 5
-%         tempY = slopeY(pairs(i,1),pairs(i,2));
-%         slopeY(pairs(i,1),pairs(i,2)) = -tempY;
-%     end
-%     if i == 4 || i == 5
-%         tempX = slopeX(pairs(i,1),pairs(i,2));
-%         slopeX(pairs(i,1),pairs(i,2)) = -tempX;
-%     end
-% end
 slopex = matrixTOpfsa(slopeX);
 slopey = matrixTOpfsa(slopeY);
 %% 4. INDICATOR FILES: 1 = pervious, 2 = impervious
