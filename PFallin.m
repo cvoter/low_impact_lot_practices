@@ -25,16 +25,17 @@
 clear all; close all; clc;
 set(0,'defaultTextFontSize',12,'defaultTextFontName','Gill Sans MT',...
     'defaultAxesFontSize',12,'defaultAxesFontName','Gill Sans MT')
-for l = 1:51
+percents = 15:5:40;
+for p = 1:length(percents)
     %% 1. LOT INFO
     %Note units specified below. Unless otherwise noted, L[=]m, T[=]hr
-    locname = sprintf('loc%02d',l);%'loc01'; %used to load a) met forcing, b) 1D spinup
+    locname = 'loc51';%'loc01'; %used to load a) met forcing, b) 1D spinup
     soilname = 'SiL'; %used to load a) soil parameters, b) 1D spinup
-    lotname = 'LotB_08'; %used to load outputs from PFlots (slopes, subsurfaceFeature, domainInfo, drv_vegm)
-    metyear = 'WY14'; % used to load met forcing
-    starttype = 'wy'; %used to load 1D spinup
-    runname = strcat(locname,'_B08_',soilname);
-    % runname = 'testB08';
+    lotname = strcat('AWRA_',num2str(percents(p)),'L'); %used to load outputs from PFlots (slopes, subsurfaceFeature, domainInfo, drv_vegm)
+    metyear = 'parkingTest'; % used to load met forcing
+    starttype = 'sp'; %used to load 1D spinup
+%     runname = strcat(locname,'_B08_',soilname);
+    runname = lotname;
     
     %% 2. DEFINE DIRS AND FILENAMES BASED ON INPUTS
     inDir = strcat('K:\Parflow\PFinput\ModelIn\',runname); mkdir(inDir);
