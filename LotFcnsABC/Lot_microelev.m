@@ -6,6 +6,9 @@ function [] = Lot_microelev(nx,ny,sd,landslope,lotname)
 %RR = 2.85cm  = 5mm depression storage
 %RR = 1.75cm  = 2.5mm depression storage
 
+% To account for pit-filling later on, do:
+% RR = 3.75cm --> DS = 7.7mm --> DS ~= 5mm after pit filling
+
 %Example command:
 %Lot_microelev(48,88,0.0285,0.02,'LotA');
 %Lot_microelev(27,84,0.0285,0.02,'LotB');
