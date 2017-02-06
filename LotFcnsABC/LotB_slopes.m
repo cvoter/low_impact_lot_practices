@@ -40,10 +40,6 @@ function [slopeX,slopeY,elev,DScalc,sumflag] = LotB_slopes(x,nx,dx,xL,xU,y,ny,dy
 %PARCEL COVER - COLUMNS
 % 1=left X   2=right X    3=lower Y    4=upper Y
 
-%OTHER NOTES:
-%Positive Slope points uphill   --> high coordinate = highest elev
-%Negative Slope points downhill --> low coordinate = highest elev
-
 %% 1. INPUTS
 developed = triggers(1);
 downspout = triggers(2);
