@@ -264,7 +264,7 @@ for i = 1:ny
             end
         end
         
-        %FIX SLOPES NEAR HOUSE AND GARAGE
+        %FIX SLOPES NEAR HOUSE AND GARAGE AND BELOW SIDEWALK
         if thisX > fc(7,1) && thisX < fc(7,2) && thisY < fc(7,3) && thisY > fc(7,3)-dy
             %just below house
             if slopeY(i,j) < 0
@@ -284,6 +284,18 @@ for i = 1:ny
             %just right of house
             if slopeX(i,j) > 0
                 slopeX(i,j) = -slopeX(i,j);
+            end
+        end
+        if thisY < fc(4,3) && thisY > fc(4,3)-dy
+            %just below sidewalk
+            if slopeY(i,j) < 0
+                slopeY(i,j) = -slopeY(i,j);
+            end
+        elseif (thisX > fc(7,1)) && (thisX < fc(7,1)+3*dx) && ...
+                (thisY < fc(7,3)-dsLength) && (thisY > fc(7,3)-dsLength-dy)
+            %problem downspout
+            if slopeY(i,j) < 0
+                slopeY(i,j) = -slopeY(i,j);
             end
         end
     end
