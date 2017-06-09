@@ -24,9 +24,9 @@
 clear all; close all; clc;
 
 %% GET PRECIP.MAT
-for i=1:51
+for i=51
     loc = sprintf('loc%02d',i);
-    dir = strcat('K:\Parflow\PFinput\PrecipType\SP81\',loc);
+    dir = strcat('K:\Parflow\PFinput\PrecipType\SP12\',loc);
     cd(dir)
     met = load('nldas.1hr.clm.txt'); %initial units [mm/s]
     precip(:,1) = met(:,3)/1000; %convert to [m/s]

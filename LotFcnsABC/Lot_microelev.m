@@ -15,7 +15,7 @@ function [] = Lot_microelev(sd,landslope,lotname)
 %Lot_microelev(32,84,0.0285,0.02,'LotC');
 
 %Example command (new, load AWRA data first)
-% Lot_microelev(0.0375,0.02,'AWRA_15');
+% Lot_microelev(0.0375,0.02,'AWRA_40');
 
 %% Load AWRA data
 AWRAdir = 'J:\Research\Subprojects\ResidentialLayouts\Madison\parflow';
@@ -38,6 +38,6 @@ end
 RRcalc = sqrt((1/(ny*nx-1))*RRinc)*100; %Random roughness [cm]
 DScalc = 0.112*RRcalc+0.031*RRcalc^2-0.012*RRcalc*landslope*100; %Depression storage [cm]
 
-savename=strcat(AWRAdir,'\',lotname,'_microelev.mat');
+savename=strcat(AWRAdir,'\',lotname,'e_microelev.mat');
 save(savename,'microElev','sd','RRcalc','DScalc');
 end

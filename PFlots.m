@@ -38,14 +38,14 @@ addpath('J:\Research\Parflow\inputs\matlab_in');
 
 %% 1. LOT INFO
 %Note units specified below. Unless otherwise noted, L[=]m, T[=]hr
-for downspout = 0:1
-    for sidewalk = 0:1
-        for transverse = 0:1
-            for microType = 0:1
+for downspout = 1%0:1
+    for sidewalk = 1%0:1
+        for transverse = 1%0:1
+            for microType = 1%0:1
                 clearvars -except mycmap downspout sidewalk transverse microType; close all;
-                lotbase = 'AWRA_25'; %for microtopography
-                lotdata = sprintf('Lot%d%d',downspout,sidewalk); %for parcelCover data
-                lotname = sprintf('Lot%d%d%d%d',downspout,sidewalk,transverse,microType);
+                lotbase = 'AWRA_50e'; %for microtopography
+                lotdata = 'AWRA_50L';%sprintf('Lot%d%d',downspout,sidewalk); %for parcelCover data
+                lotname = 'AWRA_50Le';%sprintf('Lot%d%d%d%d',downspout,sidewalk,transverse,microType);
                 saveDir = strcat('K:\Parflow\PFinput\LotType\',lotname); mkdir(saveDir);
                 
                 %Layout triggers
