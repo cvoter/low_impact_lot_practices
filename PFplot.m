@@ -3,8 +3,8 @@
 %March 6, 2017
 
 clear all; close all; clc;
-set(0,'defaultTextFontSize',8,'defaultTextFontName','Arial',...
-    'defaultAxesFontSize',8,'defaultAxesFontName','Arial')
+set(0,'defaultTextFontSize',24,'defaultTextFontName','Segoe UI Semilight',...
+    'defaultAxesFontSize',18,'defaultAxesFontName','Segoe UI Semilight')
 %COLORMAP: ALL GREY
 % load('J:\Research\Subprojects\ResidentialLayouts\Madison\scripts\simpleColormap.mat'); %3 tone
 load('twoToneGrey.mat'); %2 tone
