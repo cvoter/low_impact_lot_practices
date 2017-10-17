@@ -25,100 +25,95 @@
 clear all; close all; clc;
 set(0,'defaultTextFontSize',12,'defaultTextFontName','Gill Sans MT',...
     'defaultAxesFontSize',12,'defaultAxesFontName','Gill Sans MT')
-for row = [1,2,4,8,16]
-    for depth = [1,2]
-        %% 1. LOT INFO
-        %Note units specified below. Unless otherwise noted, L[=]m, T[=]hr
-        locname = 'loc51'; %sprintf('loc%02d',l); %used to load a) met forcing, b) 1D spinup
-        soilname = 'SiL'; %used to load a) soil parameters, b) 1D spinup
-        % soilname = allSoils{soilnum}; %used to load a) soil parameters, b) 1D spinup
-        lotname = strcat('Block_',num2str(row),'x',num2str(depth));%sprintf('Lot%d%d%d%d',downspout,sidewalk,transverse,microType); %used to load outputs from PFlots (slopes, subsurfaceFeature, domainInfo, drv_vegm)
-        metyear = 'parkingTest'; % used to load met forcing
-        starttype = 'wy'; %used to load 1D spinup
-        % runname = sprintf('Lot%d%d%d%d_%s',downspout,sidewalk,transverse,microType,soilname);
-        runname = lotname; %sprintf('%sL',locname);
-        
-        %% 2. DEFINE DIRS AND FILENAMES BASED ON INPUTS
-        inDir = strcat('K:\Parflow\PFinput\ModelIn\',runname); mkdir(inDir);
-        lotDir = strcat('K:\Parflow\PFinput\LotType\',lotname);
-        metDir = strcat('K:\Parflow\PFinput\PrecipType\',metyear);
-        metFile = strcat(metDir,'\',locname,'\nldas.1hr.clm.txt');
-        soilFile = strcat('K:\Parflow\PFinput\SoilType\',soilname,'.mat');
-        cd(inDir)
-        
-        %% 3. COPY EXISTING STUFF INTO INPUT DIR
-        copyfile(lotDir,inDir);
-        copyfile(metFile,inDir);
-        copyfile(strcat(metDir,'\',locname,'\precip.mat'),inDir);
-        copyfile(strcat(metDir,'\drv_clmin.dat'),inDir);
-        copyfile(strcat(metDir,'\drv_clmin_restart.dat'),inDir);
-        copyfile(strcat(metDir,'\drv_vegp.dat'),inDir);
-        
-        %% 4. EXTEND PARAMETER INFO
-        %domainInfo includes:
-        %dx,dy,dz,nx,ny,nz,x,y,z,domainArea,P,Q,R,NaNimp,pervX,pervY
-        load('domainInfo.mat')
-        
-        %soilInfo includes:
-        load(soilFile)
-        load('K:\Parflow\PFinput\SoilType\imperv.mat')
-        
-        %resave domainInfo
-        save('domainInfo.mat','dx','dy','dz','nx','ny','nz','x','y','z','domainArea',...
-            'Ks_soil','porosity_soil','VGa_soil','VGn_soil','Sres_soil','Ssat_soil','mn_grass',...
-            'Ks_imperv','porosity_imperv','VGa_imperv','VGn_imperv','Sres_imperv','Ssat_imperv','mn_imperv',...
-            'P','Q','R','fc','parcelCover','slopeX','slopeY','NaNimp','pervX','pervY','elev','DScalc','-v7.3');
-        
-        %add to parameters.txt
-        %Parameter text file
-        fid = fopen('parameters.txt','a');
-        % fprintf(fid,'%.2f\n',xL); %1 0.00
-        % fprintf(fid,'%.2f\n',yL); %2 0.00
-        % fprintf(fid,'%.2f\n',zL); %3 0.00
-        % fprintf(fid,'%.0f\n',nx); %4 integer
-        % fprintf(fid,'%.0f\n',ny); %5 integer
-        % fprintf(fid,'%.0f\n',nz); %6 integer
-        % fprintf(fid,'%.2f\n',dx); %7 0.00
-        % fprintf(fid,'%.2f\n',dy); %8 0.00
-        % fprintf(fid,'%.2f\n',dz); %9 0.00
-        % fprintf(fid,'%.2f\n',xU); %10 0.00
-        % fprintf(fid,'%.2f\n',yU); %11 0.00
-        % fprintf(fid,'%.2f\n',zU); %12 0.00
-        % fprintf(fid,'%.0f\n',P); %13 integer
-        % fprintf(fid,'%.0f\n',Q); %14 integer
-        % fprintf(fid,'%.0f\n',R); %15 integer
-        fprintf(fid,'%.4e\n',Ks_soil); %16 0.0000E0
-        fprintf(fid,'%.4e\n',mn_grass); %17 0.0000E0
-        fprintf(fid,'%.2f\n',VGa_soil); %18 0.00
-        fprintf(fid,'%.2f\n',VGn_soil); %19 0.00
-        fprintf(fid,'%.2f\n',porosity_soil); %20 0.00
-        fprintf(fid,'%.2f\n',Ssat_soil); %21 0.00
-        fprintf(fid,'%.2f\n',Sres_soil); %22 0.00
-        fprintf(fid,'%.4e\n',Ks_imperv); %23 0.0000E0
-        fprintf(fid,'%.4e\n',mn_imperv); %24 0.0000E0
-        fprintf(fid,'%.2f\n',VGa_imperv); %25 0.00
-        fprintf(fid,'%.2f\n',VGn_imperv); %26 0.00
-        fprintf(fid,'%.3f\n',porosity_imperv); %27 0.000
-        fprintf(fid,'%.2f\n',Ssat_imperv); %28 0.00
-        fprintf(fid,'%.2f\n',Sres_imperv); %29 0.00
-        fclose(fid);
-        
-        %% 5. INITIAL PRESSURE
-        %Spinup mat file includes: recordWY,colWY,maxWY,pWY,sWY,pWY30,sWY30,wyIC (sub SP for WY for spring start)
-        load(strcat('K:\Parflow\PFinput\SpinupType\',locname,soilname,'_',starttype,'.mat'));
-        ICp = eval(strcat(starttype,'IC'));
-        %Create matrix for *.sa file
-        initialP = zeros(nx*ny*nz,1);
-        for i = 1:nz
-            startI = (i-1)*nx*ny+1;
-            endI = i*nx*ny;
-            initialP(startI:endI) = ICp(i);
-        end
-        %Save as *.sa file
-        fid = fopen('ICpressure.sa','a');
-        fprintf(fid,'%d% 4d% 2d\n',[nx ny nz]);
-        fprintf(fid,'% 16.7e\n',initialP(:));
-        fclose(fid);
-    end
+
+%% 1. LOT INFO
+%Note units specified below. Unless otherwise noted, L[=]m, T[=]hr
+locname = 'loc51'; %sprintf('loc%02d',l); %used to load a) met forcing, b) 1D spinup
+soilname = 'SiL2c'; %used to load a) soil parameters, b) 1D spinup
+lotname = 'BlockTest';%sprintf('Lot%d%d%d%d',downspout,sidewalk,transverse,microType); %used to load outputs from PFlots (slopes, subsurfaceFeature, domainInfo, drv_vegm)
+metyear = 'parkingTest'; % used to load met forcing
+starttype = 'wy'; %used to load 1D spinup
+runname = sprintf('%s_01',lotname);
+
+%% 2. DEFINE DIRS AND FILENAMES BASED ON INPUTS
+inDir = strcat('K:\Parflow\PFinput\ModelIn\',runname); mkdir(inDir);
+lotDir = strcat('K:\Parflow\PFinput\LotType\',lotname);
+metDir = strcat('K:\Parflow\PFinput\PrecipType\',metyear);
+metFile = strcat(metDir,'\',locname,'\nldas.1hr.clm.txt');
+soilFile = strcat('K:\Parflow\PFinput\SoilType\',soilname,'.mat');
+cd(inDir)
+
+%% 3. COPY EXISTING STUFF INTO INPUT DIR
+copyfile(lotDir,inDir);
+copyfile(metFile,inDir);
+copyfile(strcat(metDir,'\',locname,'\precip.mat'),inDir);
+copyfile(strcat(metDir,'\drv_clmin_start.dat'),inDir);
+copyfile(strcat(metDir,'\drv_clmin_restart.dat'),inDir);
+copyfile(strcat(metDir,'\drv_vegp.dat'),inDir);
+
+%% 4. EXTEND PARAMETER INFO
+%domainInfo includes:
+%dx,dy,dz,nx,ny,nz,x,y,z,domainArea,P,Q,R,NaNimp,pervX,pervY
+load('domainInfo.mat')
+
+%soilInfo includes:
+load(soilFile)
+load('K:\Parflow\PFinput\SoilType\imperv.mat')
+
+%resave domainInfo
+save('domainInfo.mat','dx','dy','dz','nx','ny','nz','x','y','z','domainArea',...
+    'Ks_soil','porosity_soil','VGa_soil','VGn_soil','Sres_soil','Ssat_soil','mn_grass',...
+    'Ks_imperv','porosity_imperv','VGa_imperv','VGn_imperv','Sres_imperv','Ssat_imperv','mn_imperv',...
+    'P','Q','R','fc','parcelCover','slopeX','slopeY','NaNimp','pervX','pervY','elev','DScalc','-v7.3');
+
+%add to parameters.txt
+%Parameter text file
+fid = fopen('parameters.txt','a');
+% fprintf(fid,'%.2f\n',xL); %1 0.00
+% fprintf(fid,'%.2f\n',yL); %2 0.00
+% fprintf(fid,'%.2f\n',zL); %3 0.00
+% fprintf(fid,'%.0f\n',nx); %4 integer
+% fprintf(fid,'%.0f\n',ny); %5 integer
+% fprintf(fid,'%.0f\n',nz); %6 integer
+% fprintf(fid,'%.2f\n',dx); %7 0.00
+% fprintf(fid,'%.2f\n',dy); %8 0.00
+% fprintf(fid,'%.2f\n',dz); %9 0.00
+% fprintf(fid,'%.2f\n',xU); %10 0.00
+% fprintf(fid,'%.2f\n',yU); %11 0.00
+% fprintf(fid,'%.2f\n',zU); %12 0.00
+% fprintf(fid,'%.0f\n',P); %13 integer
+% fprintf(fid,'%.0f\n',Q); %14 integer
+% fprintf(fid,'%.0f\n',R); %15 integer
+fprintf(fid,'%.4e\n',Ks_soil); %16 0.0000E0
+fprintf(fid,'%.4e\n',mn_grass); %17 0.0000E0
+fprintf(fid,'%.2f\n',VGa_soil); %18 0.00
+fprintf(fid,'%.2f\n',VGn_soil); %19 0.00
+fprintf(fid,'%.2f\n',porosity_soil); %20 0.00
+fprintf(fid,'%.2f\n',Ssat_soil); %21 0.00
+fprintf(fid,'%.2f\n',Sres_soil); %22 0.00
+fprintf(fid,'%.4e\n',Ks_imperv); %23 0.0000E0
+fprintf(fid,'%.4e\n',mn_imperv); %24 0.0000E0
+fprintf(fid,'%.2f\n',VGa_imperv); %25 0.00
+fprintf(fid,'%.2f\n',VGn_imperv); %26 0.00
+fprintf(fid,'%.3f\n',porosity_imperv); %27 0.000
+fprintf(fid,'%.2f\n',Ssat_imperv); %28 0.00
+fprintf(fid,'%.2f\n',Sres_imperv); %29 0.00
+fclose(fid);
+
+%% 5. INITIAL PRESSURE
+%Spinup mat file includes: recordWY,colWY,maxWY,pWY,sWY,pWY30,sWY30,wyIC (sub SP for WY for spring start)
+load(strcat('K:\Parflow\PFinput\SpinupType\',locname,soilname,'_',starttype,'.mat'));
+ICp = eval(strcat(starttype,'IC'));
+%Create matrix for *.sa file
+initialP = zeros(nx*ny*nz,1);
+for i = 1:nz
+    startI = (i-1)*nx*ny+1;
+    endI = i*nx*ny;
+    initialP(startI:endI) = ICp(i);
 end
+%Save as *.sa file
+fid = fopen('ICpressure.sa','a');
+fprintf(fid,'%d% 4d% 2d\n',[nx ny nz]);
+fprintf(fid,'% 16.7e\n',initialP(:));
+fclose(fid);
 
