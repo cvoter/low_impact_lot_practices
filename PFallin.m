@@ -27,15 +27,15 @@ set(0,'defaultTextFontSize',12,'defaultTextFontName','Gill Sans MT',...
     'defaultAxesFontSize',12,'defaultAxesFontName','Gill Sans MT')
 
 %% 1. LOT INFO
-for w = [1,2,4,8,16]
-    for d = 1:2
+% for w = [1,2,4,8,16]
+%     for d = 1:2
         %Note units specified below. Unless otherwise noted, L[=]m, T[=]hr
         locname = 'loc51'; %sprintf('loc%02d',l); %used to load a) met forcing, b) 1D spinup
         soilname = 'SiL2c'; %used to load a) soil parameters, b) 1D spinup
-        lotname = sprintf('Block_%dx%d',w,d); %used to load outputs from PFlots (slopes, subsurfaceFeature, domainInfo, drv_vegm)
+        lotname = 'BlockTest'; %used to load outputs from PFlots (slopes, subsurfaceFeature, domainInfo, drv_vegm)
         metyear = 'parkingTest'; % used to load met forcing
         starttype = 'wy'; %used to load 1D spinup
-        runname = lotname;
+        runname = 'Block_Halfmeter';
         
         %% 2. DEFINE DIRS AND FILENAMES BASED ON INPUTS
         inDir = strcat('K:\Parflow\PFinput\ModelIn\',runname); mkdir(inDir);
@@ -118,5 +118,5 @@ for w = [1,2,4,8,16]
         fprintf(fid,'%d% 4d% 2d\n',[nx ny nz]);
         fprintf(fid,'% 16.7e\n',initialP(:));
         fclose(fid);
-    end
-end
+%     end
+% end
