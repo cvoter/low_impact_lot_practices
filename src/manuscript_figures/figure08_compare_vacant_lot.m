@@ -52,7 +52,8 @@ for lot = 1:6
     
     % Growing season cumulative fluxes
     if lot == 3 || lot == 6
-        % Vacant lots have different naming convention
+        % Vacant lots have different naming convention. Also saved as
+        % depth(mm), not volume (m^3).
         load(strcat('../../results/selected_model_outputs/',runname,'/WBcum.mat'));
         SurfaceRunoff(lot,1) = sr_cum(end);
         DeepDrainage(lot,1) = 1000*dd_cum(end);
