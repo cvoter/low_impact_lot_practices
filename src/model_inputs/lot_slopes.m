@@ -1,17 +1,17 @@
-function [slopeX,slopeY,elev,DScalc,sumflag] = lot_slopes(x,nx,dx,xL,xU,y,ny,dy,yL,yU,X,Y,fc,parcelCover,triggers,details,lotbase)
+function [slopeX,slopeY,elev,DScalc,sumflag] = lot_slopes(x,nx,dx,xL,xU,...
+    y,ny,dy,yL,yU,X,Y,fc,parcelCover,triggers,details)
 %Created by Carolyn Voter
 %May 15, 2014
 %Major modifications September 11, 2015
 %Even more major modifications February 6, 2017
 
-%Creates 2D slope matrix in x and y direction given feature locations for
-%Large Suburban Lot 1, as follows:
+%Creates 2D slope matrix in x and y direction given feature locations, as
+%follows:
 %   1. Calculate house & garage roof slopes, based on downspout locations
 %   2. Calculate y-slope for remaining locations
 %   3. Calculate x-slope for remaining locations
 %   4. Add in transverse slopes, if applicable
-%   5. Calculate elevations, based on slopes (not quite right, at the
-%   moment)
+%   5. Calculate elevations, based on slopes
 
 %PARCEL COVER - ROWS
 % 0 = turfgrass
@@ -25,7 +25,7 @@ function [slopeX,slopeY,elev,DScalc,sumflag] = lot_slopes(x,nx,dx,xL,xU,y,ny,dy,
 % 8 = house2 (only neede for LgSub2)
 % 9 = garage
 
-%PARCEL COVER - COLUMNS
+%PARCEL COVER FEATURE COORDINATES (fc) COLUMNS
 % 1=left X   2=right X    3=lower Y    4=upper Y
 
 %% 1. INPUTS
@@ -42,7 +42,8 @@ transverseSlope = details(4);
 dsLength = details(5);
 sidewalkOffset = details(6)*sidewalk;
 
-%CALCULATED PARAMETERS
+% CALCULATED PARAMETERS
+% Mid point of house and garage, for directing roof runoff
 ymidHouse = (fc(7,3)+fc(8,4))/2;    xmidHouse = (fc(7,1)+fc(8,2))/2;
 ymidGarage = (fc(9,3)+fc(9,4))/2;   xmidGarage = (fc(9,1)+fc(9,2))/2;
 
@@ -81,14 +82,14 @@ elseif developed == 0
         xU,yL+ny/2*dy,ny/2*dy*landSlope];  % right middle
     % Rear of lot
     rearElev = [xL,yU,0;...  % left edge
-        xU,yU,0];  % right edge 
+        xU,yU,0];  % right edge
     allElev = [frontElev; midElev; rearElev];
 end
 elev = griddata(allElev(:,1),allElev(:,2),allElev(:,3),X,Y);
 elevSlopes = elev;
 %% 3. ADD MICROTOPOGRAPHY
 if microType == 1
-    load(strcat('../../data/layouts/',lotbase,'_microelev.mat'));
+    load('../../data/layouts/lot_microelev.mat');
     for i = 1:ny
         for j = 1:nx
             if parcelCover(i,j) == 0
@@ -99,7 +100,7 @@ if microType == 1
 end
 
 minElev = abs(min(min(elev)));
-elev = elev+minElev;
+elev = elev+minElev; %make minimum elevation zero, rather than negative
 elevSlopes = elevSlopes+minElev;
 
 %% 4. CALCULATE INITIAL SLOPES
@@ -133,6 +134,7 @@ M = (slopeX.^2+slopeY.^2).^0.5;
 %% 5. CHECK FOR PITS, WHEN MICROTOPGRAPHY EXISTS
 if microType == 1
     for iter = 1:500
+        % Find pixels with slope = 0, adjust elevation 2mm
         for i = 1:ny
             for j = 1:nx
                 if parcelCover(i,j) == 0 && M(i,j) == 0
@@ -141,7 +143,7 @@ if microType == 1
                 end
             end
         end
-        
+        % Recalculate slopes
         for i = 1:ny
             for j = 1:nx
                 %SlopeY
@@ -175,16 +177,18 @@ else
     sumflag = 0;
 end
 %% 6. CHECK DEPRESSION STORAGE
-elevR = elev - elevSlopes;
+% Extract deviations in elevation on pervious pixels
+elevR = elev - elevSlopes; % remove overarching land slopes
 k = 1;
 for i = 1:ny
     for j = 1:nx
         if parcelCover(i,j) == 0
-            elevRR(k) = elevR(i,j);
+            elevRR(k) = elevR(i,j); % extract pervious elevation deviations
             k = k+1;
         end
     end
 end
+% Calculate random roughness
 RRinc = 0;
 for i = 1:k-1
     RRinc = RRinc + (elevRR(i) - mean(elevRR))^2;
@@ -198,7 +202,6 @@ if developed == 1
         thisY = y(i);
         for j = 1:nx
             thisX = x(j);
-            
             %ROOFS
             if downspout == 0
                 %0: FULLY CONNECTED
@@ -276,6 +279,8 @@ if developed == 1
             end
             
             %FIX SLOPES NEAR HOUSE AND GARAGE AND BELOW SIDEWALK
+            % If microtopogrpahy causes water to run into house, garage,
+            % etc., reverse direction of slopes
             if thisX > fc(7,1) && thisX < fc(7,2) && thisY < fc(7,3) && thisY > fc(7,3)-dy
                 %just below house
                 if slopeY(i,j) < 0
@@ -312,26 +317,5 @@ if developed == 1
         end
     end
 end
-%% 8. UNDO ALL FOR UNDEVELOPED
-% if developed == 0
-%     slopeX = zeros([ny nx]);
-%     slopeY = zeros([ny nx]);
-%     for i = 1:ny
-%         thisY = y(i);
-%         for j = 1:nx
-%             thisX = x(j);
-%             if (thisY < yU/2)
-%                 slopeY(i,j) = landSlope;
-%             elseif (thisY >= yU/2)
-%                 slopeY(i,j) = -landSlope;
-%             end
-%             if (thisX < 1.5)
-%                 slopeX(i,j) = landSlope;
-%             elseif (thisX >= (xU - 1.5))
-%                 slopeX(i,j) = -landSlope;
-%             end
-%         end
-%     end
-% end
 end
 

@@ -8,13 +8,13 @@
 % and dry weather scenarios.
 
 % Requires:
-% 'data/selected_model_inputs/Lot1111_SiL_domain_info'
-% 'data/selected_model_inputs/Lot1111_SiL_2012_domain_info'
+% 'data/model_inputs/Lot1111_SiL_average/domainInfo'
+% 'data/model_inputs/Lot1111_SiL_dry/domainInfo'
 %     Need domain information for the lowest-impact lot (all 5
 %     interventions applied) for average and dry (2012) weather scenarios.
 
-% 'results/selected_model_outputs/Lot1111_SiL'
-% 'results/selected_model_outputs/Lot1111_SiL_2012'
+% 'results/selected_model_outputs/Lot1111_SiL_average'
+% 'results/selected_model_outputs/Lot1111_SiL_dry'
 %     Need cumulative spatial deep drainage, evaporation, and transpiration
 %     data for the lowest-impact lot (all 5 interventions applied) for
 %     average and dry (2012) weather scenarios
@@ -28,7 +28,7 @@ set(0,'defaultTextFontSize',10,'defaultTextFontName','Segoe UI Semilight',...
 
 %% DATA PATHS AND CONSTANTS
 % Lowest-impact lot (all 5 interventions) for average and dry (2012) weather
-runnames = {'Lot1111_SiL','Lot1111_SiL_2012'};
+runnames = {'Lot1111_SiL_average','Lot1111_SiL_dry'};
 
 % Load colormap for heat maps
 load('../../data/colormaps/map_ylgrbu.mat');
@@ -40,7 +40,7 @@ for run = 1:2
     runname = runnames{run};
     
     % Domain Info (all lengths in meters)
-    load(strcat('../../data/selected_model_inputs/',runname,'_domain_info.mat'));
+    load(strcat('../../data/model_inputs/',runname,'/domainInfo.mat'));
     cellArea = dx*dy;
     [Xy,Yx] = meshgrid(x,y);
     xL = x(1); xU = x(length(x));

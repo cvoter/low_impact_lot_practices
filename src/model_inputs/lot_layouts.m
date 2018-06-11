@@ -3,16 +3,12 @@
 %October 19, 2016
 
 %WHAT THIS SCRIPT DOES:
-% 1. LOT INFO. User defines lotname and lot layout options
+% 1. LOT INFO. Defines lotname and lot layout options
 % 2. DOMAIN AND PROCESSOR INFO. Based on lot type specified in "LOT INFO",
-%    calculates domain and processor information.
-% 3. CALL LAND COVER AND SLOPE FUNCITONS. Script calls appropriate
-%    landCover and slope functions based on user inputs from "LOT INFO".
-%    Yields:
-%       1. parcelCover
-%       2. fc (feature coordinates)
-%       3. slopeX (also converted to slopex)
-%       4. slopeY (also converted to slopey)
+%    loads some domain and processor information and specifies the rest.
+% 3. SLOPES. Call slope function. Yields:
+%       1. slopeX (also converted to slopex)
+%       2. slopeY (also converted to slopey)
 % 4. INDICATOR FILE. Takes information about 2D parcel cover and rearranges
 %    into pfsa format. Makes assumptions about depth of impervious
 %    surfaces, garage, and house. Yields:
@@ -26,7 +22,7 @@
 %       4. subsurfaceFeature.sa (indicator file)
 %       5. slopex.sa
 %       6. slopey.sa
-% 6. PLOT. Plots and savs:
+% 6. PLOT. Plots and saves:
 %       1. Grey map of impervious area
 %       2. Colorful map of impervious features and slopes.
 
@@ -36,54 +32,57 @@ set(0,'defaultTextFontSize',12,'defaultTextFontName','Helvetica',...
 load('../../data/colormaps/greyImpMap.mat');
 
 %% 1. LOT INFO
-%Note units specified below. Unless otherwise noted, L[=]m, T[=]hr
-for downspout = 0:1
-    for sidewalk = 0:1
-        for transverse = 0:1
-            for microType = 0:1
+% Unless otherwise noted, L[=]m, T[=]hr
+for downspout = 0:1  % 0=fully connected; 1=downspouts at corners
+    for sidewalk = 0:1  % 0=connected sidewalk; 1=offset sidewalk
+        for transverse = 0:1  % 0=no transverse slope, 1=transverse slope on driveway & front walk
+            for microType = 0:1  % 0=no microtopography, 1=microtopography
                 clearvars -except mycmap downspout sidewalk transverse microType; close all;
-                lotbase = 'lot'; %for microtopography
-                lotdata = sprintf('Lot%d%d',downspout,sidewalk); %for parcelCover data
+                lotdata = sprintf('Lot%d%d',downspout,sidewalk); % for parcelCover data
                 lotname = sprintf('Lot%d%d%d%d',downspout,sidewalk,transverse,microType);
-                saveDir = strcat('../../data/layouts/',lotname); mkdir(saveDir);
+                saveDir = strcat('../../data/layouts/',lotname); 
+                mkdir(saveDir);
                 
                 %Layout triggers
-                lotType = 1; % 1=LotA, 2=LotB, 3=LotC
-                developed = 1; % 0=undeveloped; 1=developed
-                %     downspout = 0; %0=fully connected; 1=downspouts at corners; 2=no downspouts
-                %     sidewalk = 0; %0=connected sidewalk; 1=offset sidewalk
-                %     transverse = 0; %0=no transverse slope; 1=transverse slope on driveway & front walk
-                %     microType = 0; %0=no microtopography, 1=microtopography
+                developed = 1;  % 0=undeveloped; 1=developed
                 triggers = [developed,downspout,sidewalk,transverse,microType];
                 
                 %Layout slopes and distances
-                landSlope = 0.02; %magnitude of land slope
-                roofSlope=0.20; streetSlope=landSlope;
-                transverseSlope = landSlope; %driveway x-slope, frontwalk x-slope
-                dsLength = 1.5; %downspout length [m]. Only used if downspouts=2.
-                sidewalkOffset = 2; %distance between sidewalk and street, [m]
+                landSlope = 0.02;  % magnitude of land slope
+                roofSlope=0.20; 
+                streetSlope=landSlope;
+                transverseSlope = landSlope;  % driveway x-slope, frontwalk x-slope
+                dsLength = 1.5;  % downspout length [m]
+                sidewalkOffset = 2;  % distance between sidewalk and street [m]
                 details = [landSlope,roofSlope,streetSlope,transverseSlope,dsLength,sidewalkOffset];
                 
                 %% 2. DOMAIN AND PROCESSOR INFO
-                %Unique to each lot type
-                % if lotType == 1 %LotA (LgSub)
-                %     xL = 0; dx = 0.5; nx = 48;
-                %     yL = 0; dy =0.5; ny = 88;
-                %     P = 2; Q = 4;
-                % elseif lotType == 2 %LotB (SmUrb)
-                %     xL = 0; dx = 0.5; nx = 27;
-                %     yL = 0; dy =0.5; ny = 84;
-                %     P = 1; Q = 4;
-                % elseif lotType == 3 %LotC (SmUrb)
-                %     xL = 0; dx = 0.5; nx = 32;
-                %     yL = 0; dy =0.5; ny = 84;
-                %     P = 1; Q = 4;
-                % end
+                % Load parcel cover (parcelCover) and feature coords (fc),
+                % which vary with downspout and sidewalk connectivity. 
+                % parcelCover key:
+                %     0 = turfgrass
+                %     1 = street
+                %     2 = alley
+                %     3 = parking lot
+                %     4 = sidewalk
+                %     5 = driveway
+                %     6 = frontwalk
+                %     7 = house
+                %     8 = house2 (extra house behind garage)
+                %     9 = garage
+                % fc rows correspond with above key. Columns are:
+                %     col 1 = lower x
+                %     col 2 = upper x
+                %     col 3 = lower y
+                %     col 4 = upper y
+                % Also includes dx, dy (grid spacing); nx, ny (number of x
+                % and y elements); xL, yL (lower x and y values); P, Q
+                % (number of processors in x and y, respectively)
                 load(strcat('../../data/layouts/',lotdata,'.mat'));
+                
                 zL = 0; dz = 0.1; nz = 100;
                 R = 1;  %No. Z processors
-                
-                %Common to all lot types
+                                
                 xU = xL+dx*nx;  x0 = xL+dx/2;   xf = xU-dx/2;
                 yU = yL+dy*ny;  y0 = yL+dy/2;   yf = yU-dy/2;
                 zU = zL+dz*nz;  z0 = zL+dz/2;   zf = zU-dz/2;
@@ -95,88 +94,72 @@ for downspout = 0:1
                 [X,Y] = meshgrid(x,y);
                 domainArea = dx*dy*nx*ny;
                 
-                %% 3. CALL LAND COVER AND SLOPE FUNCTIONS
-                %Lot Layout
-                % lotFcn = {@LotA,@LotB,@LotC};
-                
-                %Land Cover
-                % [fc,parcelCover,used] = lotFcn{lotType}(dx,dy,nx,ny,x,y,triggers,details);
-                %   Output Key:
-                %     0=turfgrass, 1=street, 2=alley, 3=parking lot, 4=sidewalk, 5=driveway
-                %     6=frontwalk, 7=house, 8=house2 (only neede for LgSub2), 9=garage
-                
-                
-                %Slopes
-                [slopeX,slopeY,elev,DScalc,sumflag] = lot_slopes(x,nx,dx,xL,xU,y,ny,dy,yL,yU,X,Y,fc,parcelCover,triggers,details,lotbase);
+                %% 3. SLOPES
+                [slopeX,slopeY,elev,DScalc,sumflag] = lot_slopes(x,nx,dx,xL,xU,y,ny,dy,yL,yU,X,Y,fc,parcelCover,triggers,details);
                 slopex = matrixTOpfsa(slopeX);
                 slopey = matrixTOpfsa(slopeY);
-                %% 4. INDICATOR FILES: 1 = pervious, 2 = impervious
-                %Allocate arrays
-                domTop = zeros([ny,nx]); domTop = zeros([ny,nx]); domMid1= zeros([ny,nx]); domMid2 = zeros([ny,nx]);
                 
-                %Identify key areas in XY map: turfgrass, impervious surface, garage, and house
+                %% 4. INDICATOR FILES: 1 = pervious, 2 = impervious
+                % Allocate arrays
+                domTop = zeros([ny,nx]);  % top 20 cm
+                domMid1= zeros([ny,nx]);  % to 30 cm depth
+                domMid2 = zeros([ny,nx]);  % to 3m depth
+                
+                % Identify key areas in XY map: 
+                % turfgrass, impervious surface, garage, and house
                 for i = 1:ny
                     for j = 1:nx
-                        if parcelCover(i,j) == 0 %Turfgrass
+                        if parcelCover(i,j) == 0  % turfgrass
                             vegetation(i,j) = 10;
                             domTop(i,j) = 1;
                             domMid1(i,j) = 1;
                             domMid2(i,j) = 1;
-                        elseif (parcelCover(i,j) >= 1) && (parcelCover(i,j) < 7); %Impervious Surface
+                        elseif (parcelCover(i,j) >= 1) && (parcelCover(i,j) < 7)  % Impervious Surface
                             vegetation(i,j) = 18;
                             domTop(i,j) = 2;
                             domMid1(i,j) = 1;
                             domMid2(i,j) = 1;
-                        elseif (parcelCover(i,j) >= 7); %Garage and House
+                        elseif (parcelCover(i,j) >= 7)  % garage and house
                             vegetation(i,j) = 18;
                             domTop(i,j) = 2;
                             domMid1(i,j) = 2;
-                            if (parcelCover(i,j) == 7) || (parcelCover(i,j) == 8) %Just house
+                            if (parcelCover(i,j) == 7) || (parcelCover(i,j) == 8)  % just house
                                 domMid2(i,j) = 2;
-                            elseif (parcelCover(i,j) == 9) %Just garage
+                            elseif (parcelCover(i,j) == 9)  % just garage
                                 domMid2(i,j) = 1;
                             end
                         end
                     end
                 end
                 
-                %Create drv_vegm.dat using special matrixTOvegm function
-                for i = 1:ny
-                    for j = 1:nx
-                        vegGrid(j,i) = vegetation(i,j);
-                    end
-                end
-                %Save
-                matrixTOvegm(saveDir,nx,ny,vegGrid);
-                
-                %Create indicator file to trigger correct subsurface hydraulic properties
+                % Convert matrix of each type of layer to .sa inputs
                 domainTop = matrixTOpfsa(domTop);
                 domainMid1 = matrixTOpfsa(domMid1);
                 domainMid2 = matrixTOpfsa(domMid2);
                 
-                %Sidewalk, front walk, driveway only impervious for first 2 layers.
-                %Garage only impervious for top 30cm.
-                %House only impervious for top 3m.
+                % Sidewalk, front walk, driveway only imperv. 1st 2 layers
+                % Garage only impervious for top 30cm.
+                % House only impervious for top 3m.
                 nMid1 = round(0.3/dz);
                 nMid2 = round(3.0/dz);
                 
-                %Allocate arrays
+                % Allocate arrays
                 NaNimp = ones([ny nx nz]);
                 subsurfaceFeature = ones([nx*ny*nz],1);
                 
-                %Top layer
+                % Top layer
                 startI = nx*ny*(nz-1)+1;
                 endI = nx*ny*nz;
                 subsurfaceFeature(startI:endI) = domainTop;
                 NaNimp(:,:,nz) = domTop;
                 
-                %Second layer
+                % Second layer
                 startI = nx*ny*(nz-2)+1;
                 endI = nx*ny*(nz-1);
                 subsurfaceFeature(startI:endI) = domainTop;
                 NaNimp(:,:,(nz-1)) = domTop;
                 
-                %Mid layers, garage and house
+                % Mid layers, garage and house
                 for i = 3:nMid2
                     startI = (nz-i)*nx*ny+1;
                     endI = (nz-i+1)*nx*ny;
@@ -189,7 +172,11 @@ for downspout = 0:1
                     end
                 end
                 
-                %Make NaNimp have NaNs
+                % Create NaNimp, which has NaN values at impervious pixels.
+                % pervY and pervX indicate coordinates of a random pervious
+                % pixel - this is sometimes helpful in post-processing,
+                % when may need to trick the colorbar if all pervious
+                % values are the same.
                 for i = 1:ny
                     for j = 1:nx
                         for k = 1:nz
@@ -200,6 +187,14 @@ for downspout = 0:1
                     end
                 end
                 [pervY,pervX] = find(NaNimp(:,:,nz)==1,1);
+                
+                % Create drv_vegm.dat using special matrixTOvegm function
+                for i = 1:ny
+                    for j = 1:nx
+                        vegGrid(j,i) = vegetation(i,j);
+                    end
+                end
+                matrixTOvegm(saveDir,nx,ny,vegGrid);  % save
                 
                 %% 4. SAVE LOT INPUTS           
                 %Parameter text file
@@ -222,11 +217,12 @@ for downspout = 0:1
                 fclose(fid);
                 
                 % Post-processing input
-                % If add/remove anything here, be sure to also adjust in PFallin.m
-                save(strcat(saveDir,'/domainInfo.mat'),'dx','dy','dz','nx','ny','nz','x','y','z','domainArea','P','Q','R',...
-                    'fc','parcelCover','slopeX','slopeY','NaNimp','pervX','pervY','elev','DScalc','-v7.3');
+                save(strcat(saveDir,'/domainInfo.mat'),'dx','dy','dz',...
+                    'nx','ny','nz','x','y','z','domainArea','P','Q','R',...
+                    'fc','parcelCover','slopeX','slopeY','NaNimp',...
+                    'pervX','pervY','elev','DScalc','-v7.3');
                 
-                %Pervious
+                %Impervious-pervious indicator file
                 fid = fopen(strcat(saveDir,'/subsurfaceFeature.sa'),'a');
                 fprintf(fid,'%d% 4d% 2d\n',[nx ny nz]);
                 fprintf(fid,'% d\n',subsurfaceFeature(:));
@@ -245,18 +241,18 @@ for downspout = 0:1
                 fclose(fid);
                 
                 %% PLOT
-                %pcolor does not plot last row or column - have to trick it here so that
-                %they are displayed.
+                % pcolor does not plot last row or column - have to trick
+                % it here so that they are displayed.
                 xP = [x,x(nx)+dx];
                 yP = [y,y(ny)+dy];
                 [XP,YP] = meshgrid(xP,yP);
                 CP = [parcelCover,parcelCover(:,nx);parcelCover(ny,:),parcelCover(ny,nx)];
                 
-                %Slope magnitude
+                % Slope magnitude
                 M = (slopeX.^2+slopeY.^2).^0.5;
                 MP = [M,M(:,nx);M(ny,:),M(ny,nx)];
                 
-                %FIGURE 1: Parcel Cover, grey
+                % FIGURE 1: Parcel Cover, grey
                 figure(1)
                 hold on
                 axis equal
@@ -270,7 +266,7 @@ for downspout = 0:1
                 hold off
                 savefig(strcat(saveDir,'/GreyParcelCover.fig'))
                 
-                %FIGURE 2: Parcel Cover, with slopes
+                % FIGURE 2: Parcel Cover, with slopes
                 figure(2)
                 hold on
                 axis equal

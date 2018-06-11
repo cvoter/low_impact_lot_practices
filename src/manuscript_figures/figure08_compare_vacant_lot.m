@@ -10,12 +10,12 @@
 % dry growing season conditions.
 
 % Requires:
-% 'data/selected_model_inputs/Lot0000_SiL10c_domain_info.mat'
-% 'data/selected_model_inputs/Lot0000_SiL10c_2012_domain_info.mat'
-% 'data/selected_model_inputs/Lot1111_SiL_domain_info.mat'
-% 'data/selected_model_inputs/Lot1111_SiL_2012_domain_info.mat'
-% 'data/selected_model_inputs/VacantLot_domain_info.mat'
-% 'data/selected_model_inputs/VacantLot_2012_domain_info.mat'
+% 'data/model_inputs/Lot0000_SiL10c_average/domainInfo.mat'
+% 'data/model_inputs/Lot0000_SiL10c_dry/domainInfo.mat'
+% 'data/model_inputs/Lot1111_SiL_average/domainInfo.mat'
+% 'data/model_inputs/Lot1111_SiL_dry/domainInfo.mat'
+% 'data/model_inputs/VacantLot_average/domainInfo.mat'
+% 'data/model_inputs/VacantLot_dry/domainInfo.mat'
 %     Need domain information for the highly-compacted baseline,
 %     lowest-impact lot (all 5 interventions applied), and vacant lot for
 %     average and dry (2012) weather scenarios.
@@ -35,8 +35,8 @@ set(0,'defaultTextFontSize',10,'defaultTextFontName','Segoe UI Semilight',...
     'defaultAxesFontSize',10,'defaultAxesFontName','Segoe UI Semilight')
 
 %% DATA PATHS AND CONSTANTS
-runnames = {'Lot0000_SiL10c','Lot1111_SiL','LotVacant',...
-    'Lot0000_SiL10c_2012','Lot1111_SiL_2012','LotVacant_2012'};
+runnames = {'Lot0000_SiL10c_average','Lot1111_SiL_average','LotVacant_average',...
+    'Lot0000_SiL10c_dry','Lot1111_SiL_dry','LotVacant_dry'};
 
 %% 1. BASELINE10C - AVERAGE
 for lot = 1:6
@@ -44,7 +44,7 @@ for lot = 1:6
     runname = runnames{lot};
     
     % Load domain data
-    load(strcat('../../data/selected_model_inputs/',runname,'_domain_info.mat'));
+    load(strcat('../../data/model_inputs/',runname,'/domainInfo.mat'));
     
     %Count number of impervious vs. pervious pixels
     nImperv = sum(sum(isnan(NaNimp(:,:,100))));

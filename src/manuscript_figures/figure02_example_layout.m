@@ -8,7 +8,7 @@
 % elevations used in microtopography scenarios via heatmap.
 
 % Requires:
-% 'results/selected_model_inputs/Lot1111_SiL_domain_info.mat'
+% 'results/model_inputs/Lot1111_SiL_average/domainInfo.mat'
 %      domain info for lowest impact lot (all 5 low-impact features applied)
 %      incl. elevation
 
@@ -31,7 +31,7 @@ set(0,'defaultTextFontSize',10,'defaultTextFontName','Segoe UI Semilight',...
 %     column 3: y lower
 %     column 4: y upper
 
-load('../../data/selected_model_inputs/Lot1111_SiL_domain_info.mat');
+load('../../data/model_inputs/Lot1111_SiL_average/domainInfo.mat');
 xL = x(1)-dx/2; xU = x(end)+dx/2;
 yL = y(1)-dy/2; yU = y(end)+dy/2;
 
