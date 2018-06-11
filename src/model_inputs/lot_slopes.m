@@ -1,4 +1,4 @@
-function [slopeX,slopeY,elev,DScalc,sumflag] = LotA_slopes(x,nx,dx,xL,xU,y,ny,dy,yL,yU,X,Y,fc,parcelCover,triggers,details,lotbase)
+function [slopeX,slopeY,elev,DScalc,sumflag] = lot_slopes(x,nx,dx,xL,xU,y,ny,dy,yL,yU,X,Y,fc,parcelCover,triggers,details,lotbase)
 %Created by Carolyn Voter
 %May 15, 2014
 %Major modifications September 11, 2015
@@ -41,8 +41,6 @@ streetSlope = details(3);
 transverseSlope = details(4);
 dsLength = details(5);
 sidewalkOffset = details(6)*sidewalk;
-
-inputDir = 'J:\GitResearch\Dissertation\ResidentialLayouts\Madison\parflow';
 
 %CALCULATED PARAMETERS
 ymidHouse = (fc(7,3)+fc(8,4))/2;    xmidHouse = (fc(7,1)+fc(8,2))/2;
@@ -90,7 +88,7 @@ elev = griddata(allElev(:,1),allElev(:,2),allElev(:,3),X,Y);
 elevSlopes = elev;
 %% 3. ADD MICROTOPOGRAPHY
 if microType == 1
-    load(strcat(inputDir,'\',lotbase,'_microelev.mat'));
+    load(strcat('../../data/layouts/',lotbase,'_microelev.mat'));
     for i = 1:ny
         for j = 1:nx
             if parcelCover(i,j) == 0

@@ -73,8 +73,8 @@ for j=1:ny
     end
 end
 
-cd(saveDir);
-fid = fopen('drv_vegm.dat','w');
+filename = strcat(saveDir,'/drv_vegm.dat');
+fid = fopen(filename,'w');
 fmt = '%4d% 4d% 7.2f% 7.2f% 3.2f% 3.2f% 2d% 4.2f% 4.2f% 4.2f% 4.2f% 4.2f% 4.2f% 4.2f% 4.2f% 4.2f% 4.2f% 4.2f% 4.2f% 4.2f% 4.2f% 4.2f% 4.2f% 4.2f% 4.2f\n';
 fprintf(fid,'%s\n','x  y  lat    lon    sand clay color  fractional coverage of grid by vegetation class (Must/Should Add to 1.0)');
 fprintf(fid,'%s\n','         (Deg)  (Deg)  (%/100) index  1    2    3    4    5    6    7    8    9   10  11  12   13   14   15   16   17   18');

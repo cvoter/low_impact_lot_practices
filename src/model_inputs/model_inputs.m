@@ -1,5 +1,5 @@
 % function [] = PFallin(locname,soilname,lotname,metyear,starttype,runname)
-%PFallin.m
+%model_inputs.m
 %Carolyn Voter
 %October 21, 2016
 
@@ -29,40 +29,33 @@ set(0,'defaultTextFontSize',12,'defaultTextFontName','Gill Sans MT',...
 % for w = [1,2,4,8,16]
 %     for d = 1:2
         %Note units specified below. Unless otherwise noted, L[=]m, T[=]hr
-        locname = 'loc51'; %sprintf('loc%02d',l); %used to load a) met forcing, b) 1D spinup
         soilname = 'SiL'; %used to load a) soil parameters, b) 1D spinup
-        lotname = 'LotVacantDZ25'; %used to load outputs from PFlots (slopes, subsurfaceFeature, domainInfo, drv_vegm)
-        metyear = 'parkingTest'; % used to load met forcing
-        starttype = 'wy'; %used to load 1D spinup
-        runname = 'LotVacant_VarDZ25';
+        lotname = 'Lot1111'; %used to load outputs from PFlots (slopes, subsurfaceFeature, domainInfo, drv_vegm)
+        weatherType = 'average'; % "average" or "dry" weather scenario
+        runname = 'Lot1111_SiL';
         
         %% 2. DEFINE DIRS AND FILENAMES BASED ON INPUTS
-        inDir = strcat('K:\Parflow\PFinput\ModelIn\',runname); mkdir(inDir);
-        lotDir = strcat('K:\Parflow\PFinput\LotType\',lotname);
-        metDir = strcat('K:\Parflow\PFinput\PrecipType\',metyear);
-        metFile = strcat(metDir,'\',locname,'\nldas.1hr.clm.txt');
-        soilFile = strcat('K:\Parflow\PFinput\SoilType\',soilname,'.mat');
-        cd(inDir)
+        inDir = strcat('../../data/model_inputs/',runname); mkdir(inDir);
+        lotDir = strcat('../../data/layouts/',lotname);
+        weatherDir = strcat('../../data/weather/',weatherType);
+        soilFile = strcat('../../data/soil/',soilname,'.mat');
+        ICpressFile = strcat('../../data/initial_pressure/initial_pressure_',soilname,'.mat');
         
         %% 3. COPY EXISTING STUFF INTO INPUT DIR
         copyfile(lotDir,inDir);
-        copyfile(metFile,inDir);
-        copyfile(strcat(metDir,'\',locname,'\precip.mat'),inDir);
-        copyfile(strcat(metDir,'\drv_clmin_start.dat'),inDir);
-        copyfile(strcat(metDir,'\drv_clmin_restart.dat'),inDir);
-        copyfile(strcat(metDir,'\drv_vegp.dat'),inDir);
+        copyfile(weatherDir,inDir);
         
         %% 4. EXTEND PARAMETER INFO
         %domainInfo includes:
         %dx,dy,dz,nx,ny,nz,x,y,z,domainArea,P,Q,R,NaNimp,pervX,pervY
-        load('domainInfo.mat')
+        load(strcat(inDir,'/domainInfo.mat'))
         
         %soilInfo includes:
         load(soilFile)
-        load('K:\Parflow\PFinput\SoilType\imperv.mat')
+        load('../../data/soil/imperv.mat')
         
         %resave domainInfo
-        save('domainInfo.mat','dx','dy','dz','nx','ny','nz','x','y','z','domainArea',...
+        save(strcat(inDir,'/domainInfo.mat'),'dx','dy','dz','nx','ny','nz','x','y','z','domainArea',...
             'Ks_soil','porosity_soil','VGa_soil','VGn_soil','Sres_soil','Ssat_soil','mn_grass',...
             'Ks_imperv','porosity_imperv','VGa_imperv','VGn_imperv','Sres_imperv','Ssat_imperv','mn_imperv',...
             'P','Q','R','fc','parcelCover','slopeX','slopeY','NaNimp','pervX','pervY','elev','DScalc','-v7.3');
@@ -75,7 +68,7 @@ set(0,'defaultTextFontSize',12,'defaultTextFontName','Gill Sans MT',...
         
         %add to parameters.txt
         %Parameter text file
-        fid = fopen('parameters.txt','a');
+        fid = fopen(strcat(inDir,'/parameters.txt'),'a');
         % fprintf(fid,'%.2f\n',xL); %1 0.00
         % fprintf(fid,'%.2f\n',yL); %2 0.00
         % fprintf(fid,'%.2f\n',zL); %3 0.00
@@ -109,11 +102,8 @@ set(0,'defaultTextFontSize',12,'defaultTextFontName','Gill Sans MT',...
         
         %% 5. INITIAL PRESSURE
         %Spinup mat file includes: recordWY,colWY,maxWY,pWY,sWY,pWY30,sWY30,wyIC (sub SP for WY for spring start)
-        load(strcat('K:\Parflow\PFinput\SpinupType\',locname,soilname,'_',starttype,'.mat'));
-        addpath('J:\GitResearch\Parflow\inputs\matlab_in')
-        %         ICp = eval(strcat(starttype,'IC'));
-        IC_old = eval(strcat(starttype,'IC'));
-        ICp = map_to_varDz(0, 0.1, 100, z, IC_old);
+        load(ICpressFile);
+        ICp = spIC;
         %Create matrix for *.sa file
         initialP = zeros(nx*ny*nz,1);
         for i = 1:nz
@@ -122,10 +112,9 @@ set(0,'defaultTextFontSize',12,'defaultTextFontName','Gill Sans MT',...
             initialP(startI:endI) = ICp(i);
         end
         %Save as *.sa file
-        fid = fopen('ICpressure.sa','a');
+        fid = fopen(strcat(inDir,'/ICpressure.sa'),'a');
         fprintf(fid,'%d% 4d% 2d\n',[nx ny nz]);
         fprintf(fid,'% 16.7e\n',initialP(:));
         fclose(fid);
 %     end
 % end
-rmpath('J:\GitResearch\Parflow\inputs\matlab_in')

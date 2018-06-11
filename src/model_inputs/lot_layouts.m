@@ -1,4 +1,4 @@
-%PFlots.m
+%lot_layouts.m
 %Carolyn Voter
 %October 19, 2016
 
@@ -33,8 +33,7 @@
 clear all; close all; clc;
 set(0,'defaultTextFontSize',12,'defaultTextFontName','Helvetica',...
     'defaultAxesFontSize',12,'defaultAxesFontName','Helvetica')
-load('greyImpMap.mat');
-addpath('J:\Research\Parflow\inputs\matlab_in');
+load('../../data/colormaps/greyImpMap.mat');
 
 %% 1. LOT INFO
 %Note units specified below. Unless otherwise noted, L[=]m, T[=]hr
@@ -43,10 +42,10 @@ for downspout = 0:1
         for transverse = 0:1
             for microType = 0:1
                 clearvars -except mycmap downspout sidewalk transverse microType; close all;
-                lotbase = 'AWRA_25'; %for microtopography
+                lotbase = 'lot'; %for microtopography
                 lotdata = sprintf('Lot%d%d',downspout,sidewalk); %for parcelCover data
                 lotname = sprintf('Lot%d%d%d%d',downspout,sidewalk,transverse,microType);
-                saveDir = strcat('K:\Parflow\PFinput\LotType\',lotname); mkdir(saveDir);
+                saveDir = strcat('../../data/layouts/',lotname); mkdir(saveDir);
                 
                 %Layout triggers
                 lotType = 1; % 1=LotA, 2=LotB, 3=LotC
@@ -80,7 +79,7 @@ for downspout = 0:1
                 %     yL = 0; dy =0.5; ny = 84;
                 %     P = 1; Q = 4;
                 % end
-                load(strcat('J:\Research\Subprojects\ResidentialLayouts\Madison\parflow\',lotdata,'.mat'));
+                load(strcat('../../data/layouts/',lotdata,'.mat'));
                 zL = 0; dz = 0.1; nz = 100;
                 R = 1;  %No. Z processors
                 
@@ -97,10 +96,8 @@ for downspout = 0:1
                 domainArea = dx*dy*nx*ny;
                 
                 %% 3. CALL LAND COVER AND SLOPE FUNCTIONS
-                cd('J:\Research\Parflow\inputs\matlab_in\LotFcnsABC')
                 %Lot Layout
                 % lotFcn = {@LotA,@LotB,@LotC};
-                slopeFcn = {@LotA_slopes,@LotB_slopes,@LotC_slopes};
                 
                 %Land Cover
                 % [fc,parcelCover,used] = lotFcn{lotType}(dx,dy,nx,ny,x,y,triggers,details);
@@ -110,8 +107,7 @@ for downspout = 0:1
                 
                 
                 %Slopes
-                [slopeX,slopeY,elev,DScalc,sumflag] = slopeFcn{lotType}(x,nx,dx,xL,xU,y,ny,dy,yL,yU,X,Y,fc,parcelCover,triggers,details,lotbase);
-                cd('J:\Research\Parflow\inputs\matlab_in')
+                [slopeX,slopeY,elev,DScalc,sumflag] = lot_slopes(x,nx,dx,xL,xU,y,ny,dy,yL,yU,X,Y,fc,parcelCover,triggers,details,lotbase);
                 slopex = matrixTOpfsa(slopeX);
                 slopey = matrixTOpfsa(slopeY);
                 %% 4. INDICATOR FILES: 1 = pervious, 2 = impervious
@@ -205,11 +201,9 @@ for downspout = 0:1
                 end
                 [pervY,pervX] = find(NaNimp(:,:,nz)==1,1);
                 
-                %% 4. SAVE LOT INPUTS
-                cd(saveDir)
-                
+                %% 4. SAVE LOT INPUTS           
                 %Parameter text file
-                fid = fopen('parameters.txt','w');
+                fid = fopen(strcat(saveDir,'/parameters.txt'),'w');
                 fprintf(fid,'%.2f\n',xL); %1 0.00
                 fprintf(fid,'%.2f\n',yL); %2 0.00
                 fprintf(fid,'%.2f\n',zL); %3 0.00
@@ -229,23 +223,23 @@ for downspout = 0:1
                 
                 % Post-processing input
                 % If add/remove anything here, be sure to also adjust in PFallin.m
-                save('domainInfo.mat','dx','dy','dz','nx','ny','nz','x','y','z','domainArea','P','Q','R',...
+                save(strcat(saveDir,'/domainInfo.mat'),'dx','dy','dz','nx','ny','nz','x','y','z','domainArea','P','Q','R',...
                     'fc','parcelCover','slopeX','slopeY','NaNimp','pervX','pervY','elev','DScalc','-v7.3');
                 
                 %Pervious
-                fid = fopen('subsurfaceFeature.sa','a');
+                fid = fopen(strcat(saveDir,'/subsurfaceFeature.sa'),'a');
                 fprintf(fid,'%d% 4d% 2d\n',[nx ny nz]);
                 fprintf(fid,'% d\n',subsurfaceFeature(:));
                 fclose(fid);
                 
                 %Slope X
-                fid = fopen('slopex.sa','a');
+                fid = fopen(strcat(saveDir,'/slopex.sa'),'a');
                 fprintf(fid,'%d% 4d% 2d\n',[nx ny 1]);
                 fprintf(fid,'% 16.7e\n',slopex(:));
                 fclose(fid);
                 
                 %Slope Y
-                fid = fopen('slopey.sa','a');
+                fid = fopen(strcat(saveDir,'/slopey.sa'),'a');
                 fprintf(fid,'%d% 4d% 2d\n',[nx ny 1]);
                 fprintf(fid,'% 16.7e\n',slopey(:));
                 fclose(fid);
@@ -274,7 +268,7 @@ for downspout = 0:1
                 xlabel('Distance (m)')
                 ylabel('Distance (m)')
                 hold off
-                savefig('GreyParcelCover.fig')
+                savefig(strcat(saveDir,'/GreyParcelCover.fig'))
                 
                 %FIGURE 2: Parcel Cover, with slopes
                 figure(2)
@@ -288,10 +282,8 @@ for downspout = 0:1
                 quiver(X,Y,-slopeX./M,-slopeY./M,'AutoScaleFactor',0.6,'Color','k','MaxHeadSize',0.6,'LineWidth',1)
                 ylabel('Distance (m)')
                 hold off
-                savefig('Slopes.fig')
+                savefig(strcat(saveDir,'/Slopes.fig'))
             end
         end
     end
 end
-
-rmpath('J:\Research\Parflow\inputs\matlab_in');
