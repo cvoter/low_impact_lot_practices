@@ -25,17 +25,16 @@
 clear all; close all; clc;
 set(0,'defaultTextFontSize',12,'defaultTextFontName','Gill Sans MT',...
     'defaultAxesFontSize',12,'defaultAxesFontName','Gill Sans MT')
-
 %% 1. LOT INFO
 % for w = [1,2,4,8,16]
 %     for d = 1:2
         %Note units specified below. Unless otherwise noted, L[=]m, T[=]hr
         locname = 'loc51'; %sprintf('loc%02d',l); %used to load a) met forcing, b) 1D spinup
-        soilname = 'SiL2c'; %used to load a) soil parameters, b) 1D spinup
-        lotname = 'BlockTest'; %used to load outputs from PFlots (slopes, subsurfaceFeature, domainInfo, drv_vegm)
+        soilname = 'SiL'; %used to load a) soil parameters, b) 1D spinup
+        lotname = 'LotVacantDZ25'; %used to load outputs from PFlots (slopes, subsurfaceFeature, domainInfo, drv_vegm)
         metyear = 'parkingTest'; % used to load met forcing
         starttype = 'wy'; %used to load 1D spinup
-        runname = 'Block_Halfmeter';
+        runname = 'LotVacant_VarDZ25';
         
         %% 2. DEFINE DIRS AND FILENAMES BASED ON INPUTS
         inDir = strcat('K:\Parflow\PFinput\ModelIn\',runname); mkdir(inDir);
@@ -67,6 +66,12 @@ set(0,'defaultTextFontSize',12,'defaultTextFontName','Gill Sans MT',...
             'Ks_soil','porosity_soil','VGa_soil','VGn_soil','Sres_soil','Ssat_soil','mn_grass',...
             'Ks_imperv','porosity_imperv','VGa_imperv','VGn_imperv','Sres_imperv','Ssat_imperv','mn_imperv',...
             'P','Q','R','fc','parcelCover','slopeX','slopeY','NaNimp','pervX','pervY','elev','DScalc','-v7.3');
+ 
+%         %resave domainInfo
+%         save('domainInfo.mat','dx','dy','dz','nx','ny','nz','x','y','z','dz_scale','domainArea',...
+%             'Ks_soil','porosity_soil','VGa_soil','VGn_soil','Sres_soil','Ssat_soil','mn_grass',...
+%             'Ks_imperv','porosity_imperv','VGa_imperv','VGn_imperv','Sres_imperv','Ssat_imperv','mn_imperv',...
+%             'P','Q','R','fc','parcelCover','NaNimp','pervX','pervY','elev','DScalc','-v7.3');
         
         %add to parameters.txt
         %Parameter text file
@@ -105,7 +110,10 @@ set(0,'defaultTextFontSize',12,'defaultTextFontName','Gill Sans MT',...
         %% 5. INITIAL PRESSURE
         %Spinup mat file includes: recordWY,colWY,maxWY,pWY,sWY,pWY30,sWY30,wyIC (sub SP for WY for spring start)
         load(strcat('K:\Parflow\PFinput\SpinupType\',locname,soilname,'_',starttype,'.mat'));
-        ICp = eval(strcat(starttype,'IC'));
+        addpath('J:\GitResearch\Parflow\inputs\matlab_in')
+        %         ICp = eval(strcat(starttype,'IC'));
+        IC_old = eval(strcat(starttype,'IC'));
+        ICp = map_to_varDz(0, 0.1, 100, z, IC_old);
         %Create matrix for *.sa file
         initialP = zeros(nx*ny*nz,1);
         for i = 1:nz
@@ -120,3 +128,4 @@ set(0,'defaultTextFontSize',12,'defaultTextFontName','Gill Sans MT',...
         fclose(fid);
 %     end
 % end
+rmpath('J:\GitResearch\Parflow\inputs\matlab_in')
