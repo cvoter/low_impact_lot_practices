@@ -35,6 +35,8 @@ for downspout = 0:1  % 0=fully connected; 1=downspouts at corners
                         
                         %% 3. COPY EXISTING STUFF INTO INPUT DIR
                         copyfile(lotDir,inDir);
+                        fileattrib(sprintf('%s/domainInfo.mat',inDir),'+w')
+                        fileattrib(sprintf('%s/parameters.txt',inDir),'+w')
                         copyfile(weatherDir,inDir);
                         
                         %% 4. EXTEND PARAMETER INFO
