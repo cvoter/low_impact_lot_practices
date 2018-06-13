@@ -13,8 +13,8 @@
 %     Need domain information for the lowest-impact lot (all 5
 %     interventions applied) for average and dry (2012) weather scenarios.
 
-% 'results/selected_model_outputs/Lot1111_SiL_average'
-% 'results/selected_model_outputs/Lot1111_SiL_dry'
+% 'results/Lot1111_SiL_average'
+% 'results/Lot1111_SiL_dry'
 %     Need cumulative spatial deep drainage, evaporation, and transpiration
 %     data for the lowest-impact lot (all 5 interventions applied) for
 %     average and dry (2012) weather scenarios
@@ -48,13 +48,13 @@ for run = 1:2
     
     % Deep Drainage for plotting
     % mask imperv. surfaces (with NaNs); convert volume (m^3) to depth (mm)
-    load(strcat('../../results/selected_model_outputs/',runname,'/deep_drainage.grid.cum.mat')); deep_drainage = dataS; clear dataS;
+    load(strcat('../../results/',runname,'/deep_drainage.grid.cum.mat')); deep_drainage = dataS; clear dataS;
     ddTOplot = 1000*(deep_drainage/cellArea).*NaNimp(:,:,nz);
     
     % Evapotranspiration for plotting
     % mask imperv. surfaces (with NaNs); convert volume (m^3) to depth (mm)
-    load(strcat('../../results/selected_model_outputs/',runname,'/evaporation.grid.cum.mat')); evaporation = dataS; clear dataS;
-    load(strcat('../../results/selected_model_outputs/',runname,'/transpiration.grid.cum.mat')); transpiration = dataS; clear dataS;
+    load(strcat('../../results/',runname,'/evaporation.grid.cum.mat')); evaporation = dataS; clear dataS;
+    load(strcat('../../results/',runname,'/transpiration.grid.cum.mat')); transpiration = dataS; clear dataS;
     etTOplot = 1000*((evaporation+transpiration)/cellArea).*NaNimp(:,:,nz);
         
     %Plot Deep Drainage

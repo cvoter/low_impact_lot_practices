@@ -20,12 +20,12 @@
 %     lowest-impact lot (all 5 interventions applied), and vacant lot for
 %     average and dry (2012) weather scenarios.
 
-% 'results/selected_model_outputs/Lot0000_SiL10c/WBtotal.mat'
-% 'results/selected_model_outputs/Lot0000_SiL10c_2012/WBtotal.mat'
-% 'results/selected_model_outputs/Lot1111_SiL/WBtotal.mat'
-% 'results/selected_model_outputs/Lot1111_SiL_2012/WBtotal.mat'
-% 'results/selected_model_outputs/VacantLot/WBcum.mat'
-% 'results/selected_model_outputs/VacantLot_2012/WBcum.mat'
+% 'results/Lot0000_SiL10c/WBtotal.mat'
+% 'results/Lot0000_SiL10c_2012/WBtotal.mat'
+% 'results/Lot1111_SiL/WBtotal.mat'
+% 'results/Lot1111_SiL_2012/WBtotal.mat'
+% 'results/VacantLot/WBcum.mat'
+% 'results/VacantLot_2012/WBcum.mat'
 %     Need cumulative growing season fluxes for all lots. My naming
 %     convention changed between when the developed lots and vacant lots
 %     were run, so unfortunately these have different filenames.
@@ -54,14 +54,14 @@ for lot = 1:6
     if lot == 3 || lot == 6
         % Vacant lots have different naming convention. Also saved as
         % depth(mm), not volume (m^3).
-        load(strcat('../../results/selected_model_outputs/',runname,'/WBcum.mat'));
+        load(strcat('../../results/',runname,'/WBcum.mat'));
         SurfaceRunoff(lot,1) = sr_cum(end);
         DeepDrainage(lot,1) = 1000*dd_cum(end);
         Evapotranspiration(lot,1) = ev_cum(end) + tr_cum(end);
         Transpiration(lot,1) = tr_cum(end);
     else
         % Other lots
-        load(strcat('../../results/selected_model_outputs/',runname,'/WBtotal.mat'));
+        load(strcat('../../results/',runname,'/WBtotal.mat'));
         SurfaceRunoff(lot,1) = 1000*Tsr(end)/domainArea;
         DeepDrainage(lot,1) = 1000*Tdd(end)/domainArea;
         Evapotranspiration(lot,1) = 1000*(Ttr(end)+Tev(end))/domainArea;

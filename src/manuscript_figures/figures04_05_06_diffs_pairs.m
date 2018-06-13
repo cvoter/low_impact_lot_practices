@@ -17,7 +17,7 @@
 % in this script.
 
 % Requires:
-% 'results/selected_model_outputs/finalWB10c.mat'
+% 'results/finalWB10c.mat'
 %     Contains the total growing season flux (mm depth) for
 %     highly-compacted baseline 
 %     row numbers indicate model scenario 
@@ -27,10 +27,10 @@
 %     column 4: evapotranspiration 
 %     column 5: root zone subsurface storage
 
-% 'results/selected_model_outputs/finalWB2c.mat'
+% 'results/finalWB2c.mat'
 %     Same as 'finalWB10c.mat', but for moderately-compacted baseline
 
-% 'results/selected_model_outputs/layoutMatrix.mat'
+% 'results/layoutMatrix.mat'
 %     1 = low-impact feature applied, 0 = baseline conditions
 %     row numbers indicate model scenario (same as the finalWB matrices)
 %     column 1: downspout disconnect
@@ -49,8 +49,8 @@ plottitle = {'Highly-Compacted Baseline','Moderately-Compacted Baseline'};
 
 for basetype = 1:2
     % Load data
-    load(strcat('../../results/selected_model_outputs/',finalWBfile{basetype}))
-    load('../../results/selected_model_outputs/layoutMatrix.mat');
+    load(strcat('../../results/',finalWBfile{basetype}))
+    load('../../results/layoutMatrix.mat');
     
     %% CHANGE IN GROWING SEASON FLUXES COMPARED TO BASELINE (Figs. 4 and 5)
     % Loop through lot layouts, calculate difference relative to baseline

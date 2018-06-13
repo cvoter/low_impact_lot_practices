@@ -8,7 +8,7 @@
 % elevations used in microtopography scenarios via heatmap.
 
 % Requires:
-% 'results/model_inputs/Lot1111_SiL_average/domainInfo.mat'
+% 'data/model_inputs/Lot1111_SiL_average/domainInfo.mat'
 %      domain info for lowest impact lot (all 5 low-impact features applied)
 %      incl. elevation
 
