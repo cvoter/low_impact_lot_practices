@@ -79,6 +79,7 @@ Scripts here create manuscript figures based on files in results/selected_model_
 
 ## src/model_inputs
 Scripts here create input directories for all 96 model simulations (in data/model_inputs) based on files in 'data' directory. Files include:
+  * **lot_microtopography.m**: demonstrates how deviations in elevation were randomly generated for microtopography scenarios.
   * **lot_layouts.m**: uses lot data in data/layouts to calculate slopes and generate \*.sa input files for parflow based on downspout, sidewalk, transverse slope, and microtopography features
   * **lot_slopes.m**: fills in pits in microtopography elevation (if appropriate), calculates slopes on pervious pixels, then defines slopes for impervious features.
   * **matrixTOpfsa.m**: converts Matlab matrix (*nx* X *ny*) into **\*.sa** file suitable for input to parflow as pfsa file type.
