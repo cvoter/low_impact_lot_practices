@@ -5,7 +5,7 @@ Throughout this README, emphasis is used to highlight **filenames** and *variabl
 
 # data
 ## data/colormaps
-Includes several matlab colormaps used in plots. All but **map_ylgrbu.mat** are tied to values of *parcelCover* (i.e., for values spanning 1 through 9).
+Includes several matlab colormaps used in plots. All but **map_ylgrbu.mat** and **map_reverse_jet.mat** are tied to values of *parcelCover* (i.e., for values spanning 1 through 9).
 
 ## data/initial_pressure
 Includes initial pressure (m) conditions for silt loam (SiL), moderately-compacted silt loam (SiL2c), and highly-compacted silt loam (SiL10c) baseline soil conditions. Each **\*.mat** file includes the following variables:  
