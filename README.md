@@ -92,7 +92,10 @@ Scripts here copy and evaluate model outputs. Files include:
   * **assess_model_errors.m**. extracts overall absolute (mm) and relative (-) model error for each model and plots for visualization. "Error" here is the difference between model forcing (precipitation) and all other fluxes (outflows + change in storage). Relative error is calculcated relative to model forcing (precipitation). 
 
 ## src/runParflow.tcl
-Version of parflow executable used to run these models. Note that for versions of parflow from 05/01/2017 to present (6/11/2018), there is a bug in how parflow interprets the Patch.bottom.BCPressure Dirichlet boundary condition. Wrapper scripts for this executable are contained in a different repo that I plan to make public soon.
+Version of parflow executable used to run these models. Note that for versions of parflow from 05/01/2017 to present (6/11/2018), there is a bug in how parflow interprets the Patch.bottom.BCPressure Dirichlet boundary condition. Related repositories for running parflow:
+  * cvoter/parflow: forked from parflow/parflow.
+  * cvoter/PFinstall: notes and scripts for installing parflow
+  * cvoter/PFscripts: wrapper scripts for this executable, including additonal pre- and post-processing scripts. 
 
 ## src/plot_turfgrass_roots.m
 Matlab script compares rooting parameters used in Parflow.CLM model to empirical observations of turgrass rooting depth from the literature.
