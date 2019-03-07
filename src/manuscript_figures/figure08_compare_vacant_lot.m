@@ -31,8 +31,8 @@
 %     were run, so unfortunately these have different filenames.
 
 close all; clear all; clc;
-set(0,'defaultTextFontSize',10,'defaultTextFontName','Segoe UI Semilight',...
-    'defaultAxesFontSize',10,'defaultAxesFontName','Segoe UI Semilight')
+set(0,'defaultTextFontSize',32,'defaultTextFontName','Segoe UI Semilight',...
+    'defaultAxesFontSize',32,'defaultAxesFontName','Segoe UI Semilight')
 
 %% DATA PATHS AND CONSTANTS
 runnames = {'Lot0000_SiL10c_average','Lot1111_SiL_average','LotVacant_average',...
@@ -84,7 +84,7 @@ yaxistitles = {'Surface Runoff (mm)', 'Deep Drainage (mm)', ...
 
 figure(1)
 for i = 1:4
-    subplot(2,2,i)
+    subplot(1,4,i)
     hold on
     b = bar(fluxes((2*i-1):2*i,:));
     b(1).FaceColor = [255 102 102]/255;
@@ -94,8 +94,69 @@ for i = 1:4
     set(gca,'XTickLabel',{'Average','Dry'})
     ylabel(yaxistitles{i})
     if i == 1
-        legend('Highly-Compacted Baseline','Lowest-Impact','Vacant','Orientation','horizontal')
+        legend('Baseline','Low-Impact','Vacant','Orientation','horizontal')
     end
     hold off
 end
+set(gcf,'renderer','Painters')
+
+%% DATA PATHS AND CONSTANTS
+runnames = {'Lot0000_SiL10c_average','Lot0000_SiL2c_average',...
+    'Lot1111_SiL_average','LotVacant_average'};
+
+%% 1. BASELINE10C - AVERAGE
+for lot = 1:4
+    % Run to analyze this loop
+    runname = runnames{lot};
+    
+    % Load domain data
+    load(strcat('../../data/model_inputs/',runname,'/domainInfo.mat'));
+    
+    %Count number of impervious vs. pervious pixels
+    nImperv = sum(sum(isnan(NaNimp(:,:,100))));
+    nPerv = nx*ny-nImperv;
+    
+    % Growing season cumulative fluxes
+    if lot == 4
+        % Vacant lots have different naming convention. Also saved as
+        % depth(mm), not volume (m^3).
+        load(strcat('../../results/',runname,'/WBcum.mat'));
+        SurfaceRunoff(lot,1) = sr_cum(end);
+        DeepDrainage(lot,1) = 1000*dd_cum(end);
+        Evapotranspiration(lot,1) = ev_cum(end) + tr_cum(end);
+        Transpiration(lot,1) = tr_cum(end);
+    else
+        % Other lots
+        load(strcat('../../results/',runname,'/WBtotal.mat'));
+        SurfaceRunoff(lot,1) = 1000*Tsr(end)/domainArea;
+        DeepDrainage(lot,1) = 1000*Tdd(end)/domainArea;
+        Evapotranspiration(lot,1) = 1000*(Ttr(end)+Tev(end))/domainArea;
+        Transpiration(lot,1) = 1000*Ttr(end)/(domainArea*nPerv/(nx*ny));
+    end
+end
+
+%Clean up
+clearvars -except runnames SurfaceRunoff DeepDrainage Evapotranspiration ...
+    Transpiration
+
+%% PLOT
+% Rearrange flux matrices for bar plots
+% Avg = 1-3 entries; Dry = 4-6 entries
+fluxes = [SurfaceRunoff(1:4),DeepDrainage(1:4),Evapotranspiration(1:4)]';
+yaxistitles = {'Surface Runoff (mm)', 'Deep Drainage (mm)', ...
+    'Evapotranspiration (mm)', 'Transpiration per unit vegetated area (mm)'};
+
+figure(2)
+hold on
+b2 = bar(fluxes);
+b2(1).FaceColor = [255 102 102]/255;
+b2(2).FaceColor = [255 217 102]/255;
+b2(3).FaceColor = [159 168 249]/255;
+b2(4).FaceColor = [225 225 225]/255;
+set(gca,'XTick',[1:3])
+set(gca,'XTickLabel',{'Surface Runoff', 'Deep Drainage', ...
+    'Evapotranspiration'})
+ylabel('Cumulative Flux (mm)')
+legend('Highly-Compacted','Moderately-Compacted','Low-Impact','Vacant')
+hold off
 set(gcf,'renderer','Painters')

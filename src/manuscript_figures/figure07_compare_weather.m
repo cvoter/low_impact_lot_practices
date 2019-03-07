@@ -23,8 +23,8 @@
 %      colorblind-friendly colormap for heatmaps.
 
 close all; clear all; clc;
-set(0,'defaultTextFontSize',10,'defaultTextFontName','Segoe UI Semilight',...
-    'defaultAxesFontSize',10,'defaultAxesFontName','Segoe UI Semilight')
+set(0,'defaultTextFontSize',20,'defaultTextFontName','Segoe UI Semilight',...
+    'defaultAxesFontSize',20,'defaultAxesFontName','Segoe UI Semilight')
 
 %% DATA PATHS AND CONSTANTS
 % Lowest-impact lot (all 5 interventions) for average and dry (2012) weather
