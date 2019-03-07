@@ -1,0 +1,5 @@
+data/model_inputs/**
+!data/model_inputs/Lot0000_SiL10c*
+!data/model_inputs/Lot1111_SiL*
+data/layouts/Lot*
+!data/layouts/*.mat
