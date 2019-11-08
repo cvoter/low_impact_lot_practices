@@ -1,5 +1,5 @@
 # low_impact_lot_practices
-Materials supporting the chapter of my PhD dissertation about low impact features on residential parcels, currently in review at Water Resources Research (Voter, C.B. and S.P. Loheide II. Urban Residential Surface and Subsurface Hydrology: Synergistic Effects of Low-Impact Features at the Parcel-Scale). 
+Materials supporting the chapter of my PhD dissertation about low impact features on residential parcels, published as: Voter, C.B. and S.P. Loheide II. Urban Residential Surface and Subsurface Hydrology: Synergistic Effects of Low-Impact Features at the Parcel-Scale. Water Resources Research, 54(10):8216-8233. https://doi.org/10.1029/2018WR022534). 
 
 Throughout this README, emphasis is used to highlight **filenames** and *variables*.
 
